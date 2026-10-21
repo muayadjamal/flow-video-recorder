@@ -388,10 +388,17 @@ as a variable, never interpolated into the line, so a quote in a sentence
 cannot break out of it.
 
 ```bash
+TTS_COMMAND='~/.chatterbox/bin/python <skill>/assets/tts-chatterbox.py'   # Chatterbox Turbo, see the script header for setup
 TTS_COMMAND='piper --model en_US-lessac-medium.onnx --output_file "$TTS_OUT" <<< "$TTS_TEXT"'
 TTS_COMMAND='curl -s localhost:8880/v1/audio/speech -H "content-type: application/json" \
   -d "$(jq -n --arg t "$TTS_TEXT" "{input:\$t, voice:\"af_bella\"}")" -o "$TTS_OUT"'
 ```
+
+`tts-chatterbox.py` in this skill's assets wraps [Chatterbox](https://github.com/resemble-ai/chatterbox),
+an open-source model that runs offline on Apple Silicon, CUDA or CPU: Turbo for
+English (the best read), Nano for weak CPUs, Multilingual V3 for 23 languages
+with voice cloning. Budget about 25s per clip on an M1 Max, most of it model
+load, and about 2 GB of weights on first run.
 
 Engine chosen: write `narration` and use `say()`/`hold()`. Nothing available
 and the user wants no system voice: skip narration, use `cap()`, and say so
