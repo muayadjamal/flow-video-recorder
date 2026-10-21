@@ -37,4 +37,4 @@ node "$here/ios-compose.mjs" "$mov" "$out" > /dev/null
 # what you check frames against to prove the voice-over is in sync.
 [ -f "$mov.timeline.json" ] && mv "$mov.timeline.json" "${out%.mp4}.timeline.json"
 rm -f "$mov"
-echo "Wrote $out"
+echo "Wrote $(cd "$(dirname "$out")" && pwd)/$(basename "$out")"
