@@ -4,9 +4,9 @@
     "transition": { "type": "smoothleft", "ms": 700 },
     "parts": [
         { "flow": ["order-stepper"] },
-        { "motion": "scenes/scene.example.html", "id": "m-journey", "text": "Here is the whole journey in one picture. {email}It starts when Hillcrest School emails a quote request. {ai}The AI reads it and lays out the lines, {approve}a reviewer approves the quote, {qb}and the estimate goes to QuickBooks. {po}When the school's purchase order arrives, {compare}every line is checked against the quote, and one price is flagged. {vus}The order goes to Acme Supply, {ups}UPS ships it, {paid}the school pays, {closed}and the order is closed." },
-        { "flow": ["po-arrives", "po-task"] },
-        { "motion": "scenes/scene.pipeline.example.html", "id": "m-intake", "text": "Behind every task is the intake engine. {inbox}Every few minutes it reads the sales and info mailboxes, {sort}sorts each email into a quote request, a purchase order, a supplier invoice or a remittance, {junk}and sets the rest aside. {scan}Then the AI reads the email that matters {fields}and pulls out the customer, the lines and the total, {task}and a task lands in the queue with a confidence score. {review}A person makes the call, {order}the approved task moves the order forward, {sync}and the order trades data with QuickBooks, UPS and Acme Supply." },
-        { "flow": ["vus"] }
+        { "motion": "scenes/scene.example.html", "id": "m-journey", "text": "Here is the whole journey in one picture. {email}It starts when a customer places an order. {ai}The system reads it and lays out the lines, {approve}a reviewer approves it, {qb}and the receipt goes to accounting. {po}When the customer sends an amendment, {compare}every line is checked against the original, and one quantity is flagged. {vus}The order goes to the warehouse, {ups}the courier ships it, {paid}the customer pays, {closed}and the order is closed." },
+        { "flow": ["amendment-arrives", "amendment-task"] },
+        { "motion": "scenes/scene.pipeline.example.html", "id": "m-intake", "text": "Behind every task is the inbox engine. {inbox}Every few minutes it reads the orders and help inboxes, {sort}sorts each email into a new order, an amendment, a return or a question, {junk}and sets the rest aside. {scan}Then the AI reads the email that matters {fields}and pulls out the customer, the lines and the total, {task}and a task lands in the queue with a confidence score. {review}A person makes the call, {order}the approved task moves the order forward, {sync}and the order trades data with accounting, the courier and the warehouse." },
+        { "flow": ["warehouse"] }
     ]
 }

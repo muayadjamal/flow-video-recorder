@@ -28,7 +28,7 @@
 //     a step longer than its line leaves silence. The recorder prints a
 //     per-segment table flagging every line that ran short — fix those.
 //   - Never state on the soundtrack what you have not asserted on screen. If the
-//     line says "two batches", assert two batches and fail the run otherwise.
+//     line says "two orders", assert two orders and fail the run otherwise.
 //   - Wait for async work: await page.getByText('Completed').waitFor({ timeout: 60000 }).
 //   - A navigation wipes the caption pill: say() → goto() → recap() → hold().
 //   - File upload: page.setInputFiles('input[type=file]', absPath).
