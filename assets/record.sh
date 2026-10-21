@@ -5,7 +5,7 @@
 # Requires: node, playwright (npm i -D playwright && npx playwright install chromium), ffmpeg.
 # Env: BASE (app url), WIDTH/HEIGHT (default 2560x1440, the best-quality master), SCALE (dsf, default 2),
 #      SLOWMO (ms), OUT_DIR (webm scratch dir), CRF (default 16, near lossless; raise only if asked),
-#      ELEVENLABS_API_KEY (enables narration), NARRATION=0 (force silent).
+#      TTS: ELEVENLABS_API_KEY, OPENAI_API_KEY, TTS_COMMAND or macOS say (see tts.mjs), NARRATION=0 (force silent).
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"

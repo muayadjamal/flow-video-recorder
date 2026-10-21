@@ -13,7 +13,7 @@
 // itself to the audio via say()/hold() — the step lasts as long as the sentence
 // takes to speak, so the words always land on the thing they describe. The flow
 // writes a timeline (clip start offsets) that mux.mjs lays onto the MP4.
-// Without ELEVENLABS_API_KEY the same flow records silently, captions intact.
+// Without any TTS configured the same flow records silently, captions intact.
 //
 // Env knobs: POINTER=0 (no cursor or click ripple), CAPTIONS=0 (no caption
 // pill), NARRATION=0 (no voice-over),
@@ -98,19 +98,22 @@ if (typeof flow !== 'function') {
 
 // ── Voice-over: synthesize and measure everything up front ───────────────
 const narration = Array.isArray(mod.narration) ? mod.narration : [];
-const wantVoice = narration.length > 0 && process.env.NARRATION !== '0' && !!process.env.ELEVENLABS_API_KEY;
+const tts = narration.length > 0
+    ? await import(pathToFileURL(path.resolve(path.dirname(flowPath), 'tts.mjs')).href)
+    : null;
+const ttsProvider = tts ? tts.provider() : null;
+const wantVoice = narration.length > 0 && process.env.NARRATION !== '0' && !!ttsProvider;
 let clips = new Map();
 
 if (narration.length > 0 && !wantVoice) {
-    console.error(process.env.ELEVENLABS_API_KEY
+    console.error(ttsProvider
         ? 'Narration disabled (NARRATION=0) — recording captions only.'
-        : 'No ELEVENLABS_API_KEY — recording captions only.');
+        : 'No TTS configured (ELEVENLABS_API_KEY, OPENAI_API_KEY, TTS_COMMAND, or macOS say) — recording captions only.');
 }
 
 if (wantVoice) {
     console.error(`Synthesizing ${narration.length} narration clips…`);
-    const { synthesize } = await import(pathToFileURL(path.resolve(path.dirname(flowPath), 'tts.mjs')).href);
-    clips = await synthesize(narration);
+    clips = await tts.synthesize(narration);
 }
 
 const script = new Map(narration.map((s) => [s.id, s]));

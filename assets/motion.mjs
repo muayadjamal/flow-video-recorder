@@ -24,7 +24,7 @@
 // first thing a viewer notices.
 //
 // Env: WIDTH/HEIGHT (2560x1440), FPS (30), CRF (16), LEAD_MS (900), TAIL_MS (900),
-//      ELEVENLABS_API_KEY and the tts.mjs variables.
+//      the tts.mjs variables (any provider; ElevenLabs key also gives exact word alignment).
 
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';

@@ -2,13 +2,13 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either
   in a browser with Playwright or in a native iOS app on the simulator with
-  Maestro, with a visible cursor and tap ripple, on-screen step captions, an optional ElevenLabs
-  voice-over in sync with the picture, optional motion-graphics explainer
+  Maestro, with a visible cursor and tap ripple, on-screen step captions, an optional
+  voice-over (ElevenLabs, OpenAI, macOS say, or any local TTS) in sync with the picture, optional motion-graphics explainer
   scenes spliced between recorded steps with animated transitions, and
   high-resolution MP4 output. Triggers:
   "record a demo video", "make a walkthrough / tour video", "screen record this
@@ -22,9 +22,9 @@ description: >
 # Flow Video Recorder
 
 Records a flow through your app to a polished MP4: a cursor that glides and
-ripples on every click, a caption pill per step, crisp output, and, when an
-ElevenLabs key is available, a human voice explaining what is happening as it
-happens. It records two surfaces:
+ripples on every click, a caption pill per step, crisp output, and, when a
+text-to-speech engine is configured, a human voice explaining what is happening
+as it happens. It records two surfaces:
 
 | | Browser | Native iOS |
 |---|---|---|
@@ -39,7 +39,7 @@ happens. It records two surfaces:
 
 ## Quality: always the best, unless told otherwise
 
-Every recording uses the best quality available unless the user asks otherwise. That means the ElevenLabs `eleven_v4` model for narration (also when clips come through the ElevenLabs connector: pass `model_id: eleven_v4`), a 2560×1440 master at `CRF=16` for browser flows, and `CRF=16` for iOS. These are now the defaults in the assets; only lower them when the user asks for a smaller or faster file.
+Every recording uses the best quality available unless the user asks otherwise. That means the ElevenLabs `eleven_v4` model for narration when ElevenLabs is the engine (also when clips come through the ElevenLabs connector: pass `model_id: eleven_v4`), a 2560×1440 master at `CRF=16` for browser flows, and `CRF=16` for iOS. These are now the defaults in the assets; only lower them when the user asks for a smaller or faster file.
 
 ## The one decision worth understanding first
 
@@ -64,7 +64,7 @@ alone cannot show:
 
 | Option | Describe it as | Sets |
 |---|---|---|
-| Voice-over | A spoken narration track, synthesized with ElevenLabs | `NARRATION` |
+| Voice-over | A spoken narration track, synthesized by the TTS engine the user picks | `NARRATION` |
 | Subtitles | The caption pill naming each step on screen | `CAPTIONS` |
 | Pointer | A cursor that glides between targets, and a ripple on each tap | `POINTER` |
 | Motion graphics | Short animated explainer scenes spliced between the recorded steps, with an animated transition at each join, synced word by word to the voice, for a pipeline, a data flow or a concept the screen cannot show | a `motion.plan.json`, see [Motion graphics](#motion-graphics) |
@@ -120,7 +120,7 @@ voice-over on if there is one.
    files and `motion.plan.example.json` (`kit.js` next to the scenes).
    `tts.mjs` must sit next to the flow file, since the recorder imports it from
    there.
-3. **Look for an ElevenLabs key.** See [Narration](#narration), which decides
+3. **Pick the TTS engine.** See [Narration](#narration), which decides
    whether you write any.
 4. **Write the flow.** Copy `flow.example.mjs` to `flow.mjs` and script the
    steps. The default export gets `{ page, say, hold, recap, cap, click, type,
@@ -226,7 +226,7 @@ touch it delivered with coordinates and a wall-clock timestamp.
    A React Native or Expo debug build also needs its bundler running, and a
    local HTTPS API needs its root certificate trusted on the device
    (`xcrun simctl keychain <udid> add-root-cert <ca.pem>`).
-4. **Look for an ElevenLabs key.** See [Narration](#narration).
+4. **Pick the TTS engine.** See [Narration](#narration).
 5. **Learn the screen.** Read the app's source for the testIDs it already
    ships; that is faster and more reliable than guessing. To see what XCUITest
    actually sees, dump the hierarchy, but note it costs about 15 seconds a
@@ -361,16 +361,48 @@ answered on screen.
 
 # Narration
 
-Look for an ElevenLabs key before writing anything, because it decides whether
-you write narration at all:
+Settle the engine before writing anything, because it decides whether you
+write narration at all. `tts.mjs` speaks through one of four providers:
+
+| `TTS_PROVIDER` | Needs | Voice and model knobs |
+|---|---|---|
+| `elevenlabs` | `ELEVENLABS_API_KEY` | `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL_ID` |
+| `openai` | `OPENAI_API_KEY` | `OPENAI_TTS_VOICE` (alloy), `OPENAI_TTS_MODEL` (gpt-4o-mini-tts) |
+| `say` | macOS, nothing else | `SAY_VOICE` (`say -v ?` lists them) |
+| `command` | `TTS_COMMAND` | whatever the command takes |
+
+Left unset, the provider is auto-picked in that order from what the
+environment has, so a paid key wins over the system voice. Look first:
 
 ```bash
-env | grep -i eleven
-grep -rl ELEVENLABS_API_KEY ~/code/*/.env 2>/dev/null | head
+env | grep -iE "eleven|openai|tts_"
+grep -rlE "ELEVENLABS_API_KEY|OPENAI_API_KEY" ~/code/*/.env 2>/dev/null | head
 ```
 
-Found one: write `narration` and use `say()`/`hold()`. No key: skip narration,
-use `cap()`, and say so when you deliver. The same flow file runs both ways.
+Then ask the user which engine to use, offering what you found plus `say`
+(free, instant, robotic) and their own command. If they have a local model
+(Piper, Kokoro, Coqui, a TTS server they run), `command` is the way in: a shell
+line run once per clip with `$TTS_TEXT`, `$TTS_OUT` (the file to write, any
+format ffmpeg can read) and `$TTS_SPEED` in its environment. The text is passed
+as a variable, never interpolated into the line, so a quote in a sentence
+cannot break out of it.
+
+```bash
+TTS_COMMAND='piper --model en_US-lessac-medium.onnx --output_file "$TTS_OUT" <<< "$TTS_TEXT"'
+TTS_COMMAND='curl -s localhost:8880/v1/audio/speech -H "content-type: application/json" \
+  -d "$(jq -n --arg t "$TTS_TEXT" "{input:\$t, voice:\"af_bella\"}")" -o "$TTS_OUT"'
+```
+
+Engine chosen: write `narration` and use `say()`/`hold()`. Nothing available
+and the user wants no system voice: skip narration, use `cap()`, and say so
+when you deliver. The same flow file runs every way; clips are cached per
+provider, so switching engines re-synthesizes but nothing else changes.
+
+Motion-graphics cues need word timings. ElevenLabs forced alignment gives exact
+ones for any clip, whichever engine spoke it, so a key is still worth having
+when scenes are ticked. Without one, timings are estimated from word lengths,
+which puts a cue within a word or so of its mark: fine for a diagram, not for
+anything that has to land on a syllable.
 
 ## Writing lines that sound like a person
 
@@ -402,8 +434,9 @@ use `cap()`, and say so when you deliver. The same flow file runs both ways.
 
 ## Narration knobs
 
+- `TTS_PROVIDER`: `elevenlabs`, `openai`, `say` or `command`; auto-picked from the environment when unset. See the table above for each one's voice and model variables.
 - `ELEVENLABS_VOICE_ID`: default is Eric, an American conversational read that suits product demos. `ELEVENLABS_MODEL_ID` defaults to `eleven_v4`, the best-quality model and the standing choice; `eleven_multilingual_v2` is the older, flatter read.
-- `NARRATION_SPEED`: read speed, default `1.1`. ElevenLabs out of the box reads slower than someone talking you through a screen, which viewers notice as a drag. The API takes 0.7 to 1.2 and the effect is close to linear (0.75 gave 9.4s on a line that ran 7.3s at 1.0 and 5.8s at 1.2). Past about 1.15 it starts to sound clipped. Do not judge the setting from one short clip: generation length varies enough run to run to hide a small change.
+- `NARRATION_SPEED`: read speed, default `1.1`, applied to every engine (for `say` it scales the words-per-minute rate; for `command` it arrives as `$TTS_SPEED`). ElevenLabs out of the box reads slower than someone talking you through a screen, which viewers notice as a drag. The API takes 0.7 to 1.2 and the effect is close to linear (0.75 gave 9.4s on a line that ran 7.3s at 1.0 and 5.8s at 1.2). Past about 1.15 it starts to sound clipped. Do not judge the setting from one short clip: generation length varies enough run to run to hide a small change.
 - `NARRATION=0`: record silently even with a key set. This is what the opening question sets when nobody wants a voice-over, and it is also the cheap first pass on any flow: it costs nothing and catches a broken selector before you spend credits.
 - `SEGMENT_GAP_MS`: breath between lines (default `280`).
 - `LEAD_IN_MS`: how much video to keep in front of the first spoken word (default `400`). The rest of the head, usually the app's first paint, is cut, and every audio offset moves with it.
@@ -460,8 +493,8 @@ Run `record.sh` first. The plan points at its MP4 and timeline:
 A `flow` part is `[first, last]` segment ids, inclusive, so a cut never lands
 mid-sentence. A `motion` part is a scene plus its narration. `{name}` marks a
 cue: the markers are stripped, the line is synthesized through `tts.mjs` (same
-voice, same cache), force-aligned with ElevenLabs (free, cached beside the clip
-as `.words.json`), and each cue becomes the moment the next word starts. Put a
+voice, same cache), force-aligned with ElevenLabs when a key exists, otherwise
+estimated (free, cached beside the clip as `.words.json`), and each cue becomes the moment the next word starts. Put a
 cue before the word the viewer should see happen, not before the sentence that
 introduces it.
 
