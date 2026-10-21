@@ -1,7 +1,14 @@
-# flow-video-recorder
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/brand/banner-dark.png">
+    <img alt="Flow Video Recorder: an agent skill that records a narrated, captioned demo video of your app" src=".github/brand/banner-light.png" width="100%">
+  </picture>
+</p>
 
-[![skills.sh](https://skills.sh/b/muayadjamal/flow-video-recorder)](https://skills.sh/muayadjamal/flow-video-recorder)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://skills.sh/muayadjamal/flow-video-recorder"><img alt="skills.sh" src="https://skills.sh/b/muayadjamal/flow-video-recorder"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
 
 An agent skill that records a narrated demo video of your app. Tell Claude Code (or Codex, Cursor, any agent that reads `SKILL.md`) which flow to show, and it writes a script, drives the app, and hands back an MP4 with a moving cursor, a ripple on every click, a caption per step, and a voice that explains what is happening while it happens.
 
