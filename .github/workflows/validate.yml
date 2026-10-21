@@ -14,8 +14,27 @@ jobs:
       - name: frontmatter name matches
         run: |
           grep -q '^name: flow-video-recorder$' SKILL.md
+      - name: versions agree
+        run: |
+          v="$(sed -n 's/^  version: "\(.*\)"/\1/p' SKILL.md)"
+          test -n "$v"
+          grep -q "\"version\": \"$v\"" .claude-plugin/plugin.json
+          grep -q "\"version\": \"$v\"" .claude-plugin/marketplace.json
+          grep -q "\"version\": \"$v\"" .cursor-plugin/plugin.json
+          grep -q "^## $v " CHANGELOG.md
       - name: JSON manifests parse
         run: |
-          for f in .claude-plugin/*.json assets/*.json; do
+          for f in .claude-plugin/*.json .cursor-plugin/*.json assets/*.json; do
             node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))"
           done
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: install ffmpeg
+        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+      - name: record a flow end to end
+        run: PLAYWRIGHT_WITH_DEPS=1 bash tests/smoke.sh

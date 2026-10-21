@@ -138,7 +138,7 @@
 
         <div class="card lint" id="task" data-row="mid">
             <div class="head"><span class="ref mono">TQ-00181</span><span class="badge">Customer PO</span></div>
-            <div class="field"><label>Customer</label><span class="val" id="fCust">St. John's School</span></div>
+            <div class="field"><label>Customer</label><span class="val" id="fCust">Hillcrest School</span></div>
             <div class="field"><label>Lines</label><span class="val" id="fLines">4 items</span></div>
             <div class="field"><label>Total</label><span class="val" id="fTotal">CA$4,509.75</span></div>
             <div class="foot">
@@ -159,12 +159,12 @@
             <div id="sats">
                 <div class="card sat lint" id="sQB"><div class="ping deco"></div><div class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg></div><div class="ttl">QuickBooks</div></div>
                 <div class="card sat warm lint" id="sUPS"><div class="ping deco"></div><div class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h11v9H2zM13 10h4l4 3v3h-8"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></div><div class="ttl">UPS</div></div>
-                <div class="card sat lint" id="sVUS"><div class="ping deco"></div><div class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div><div class="ttl">Vernier US</div></div>
+                <div class="card sat lint" id="sVUS"><div class="ping deco"></div><div class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div><div class="ttl">Acme Supply</div></div>
             </div>
         </div>
     </div>
     <div id="tokens"></div>
-    <div class="token chip" id="c1">St. John's School</div>
+    <div class="token chip" id="c1">Hillcrest School</div>
     <div class="token chip" id="c2">4 items</div>
     <div class="token chip" id="c3">CA$4,509.75</div>
     <div class="token pulse" id="pp"></div>
@@ -173,7 +173,7 @@
 </div>
 
 <div id="hud">
-    <div><div class="kicker">Vernier Canada</div><h1>Inside the intake</h1></div>
+    <div><div class="kicker">Acme Canada</div><h1>Inside the intake</h1></div>
     <div id="phases">
         <div class="phase" data-row="phases"><i>1</i>Read</div>
         <div class="phase" data-row="phases"><i>2</i>Sort</div>
@@ -359,7 +359,7 @@ window.timeline = () => {
     ping('#order', od + 0.55);
     swap('#oSub', 'PO received', od + 0.55, { color: '#00757a', fontWeight: 700 });
 
-    // {sync} data flows to and from QuickBooks, UPS and Vernier US.
+    // {sync} data flows to and from QuickBooks, UPS and Acme Supply.
     const sy = c('sync');
     phase(4, sy - 0.2);
     tl.to('.sat', { opacity: 1, scale: 1, duration: 0.5, stagger: 0.15, ease: 'back.out(2)', startAt: { opacity: 0, scale: 0.6 } }, sy - 0.3);

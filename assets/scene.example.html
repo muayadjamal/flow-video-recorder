@@ -97,13 +97,13 @@
     <div id="main">
         <div class="node lint" id="customer" data-row="mid">
             <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6M12 9.5v.01"/></svg></div>
-            <div class="txt"><b>St. John's School</b><span class="sub">Vancouver, BC</span></div>
+            <div class="txt"><b>Hillcrest School</b><span class="sub">Vancouver, BC</span></div>
         </div>
 
         <div id="order" class="lint" data-row="mid">
             <div id="glow" class="deco"></div>
             <div class="head"><span class="ref mono">ORD-2026-0146</span><span class="badge" id="status">Quoting</span></div>
-            <div class="who" id="who">Quote request from St. John's School</div>
+            <div class="who" id="who">Quote request from Hillcrest School</div>
             <div id="rows">
                 <div id="scan" class="deco"></div>
                 <div class="row"><span class="sku">GDX-ODO</span><span class="desc lint">Optical DO Probe</span><span class="amt lint">1 × 469</span><span class="mark"><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></span></div>
@@ -125,7 +125,7 @@
             </div>
             <div class="node lint" id="vus"><div class="ring deco"></div>
                 <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
-                <div class="txt"><b>Vernier US</b><span class="sub" id="vusSub">Supplier</span></div>
+                <div class="txt"><b>Acme Supply</b><span class="sub" id="vusSub">Supplier</span></div>
             </div>
             <div class="node lint warm" id="ups"><div class="ring deco"></div>
                 <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h11v9H2zM13 10h4l4 3v3h-8"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></div>
@@ -303,7 +303,7 @@ window.timeline = () => {
     pop('#po', p - 0.2);
     along('#po', L.cust, p, 1.0);
     tl.to('#po', { scale: 0.3, opacity: 0, duration: 0.25 }, p + 1.0);
-    swap('#who', 'PO SJS-2026-0417 from St. John\'s School', p + 0.95);
+    swap('#who', 'PO HCS-2026-0417 from Hillcrest School', p + 0.95);
     step(2, p + 0.9);
     swap('#status', 'PO received', p + 1.1);
 
@@ -315,7 +315,7 @@ window.timeline = () => {
     swap('#co2 .desc', 'PO 319 vs quote 349', k + 0.5, { color: '#c56b06', fontWeight: 700 });
     tl.set('#co2 .ok', { backgroundColor: '#f6921e' }, k + 0.44);
 
-    // {vus} off to Vernier US.
+    // {vus} off to Acme Supply.
     const v = c('vus');
     frame('#order', '#right', 1.12, v - 0.9);
     tl.to('#co2 .flash', { opacity: 0, duration: 0.4 }, v - 0.3);
