@@ -610,3 +610,12 @@ between sentences.
 the voice, not subtitles of it. Delete the `<out>.timeline.json` and any
 extracted frames before handing the file over; both entry points remove their
 own scratch capture.
+
+**Then hand it over with its path.** The last line of the reply is the
+absolute path of the finished MP4 (and of the assembled video when motion
+graphics were used), with its duration and size, so the user can open it
+without searching:
+
+```
+Final video: /Users/me/code/app/out/demo.mp4 (2:51, 48 MB)
+```

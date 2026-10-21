@@ -39,4 +39,4 @@ if [ -f "$timeline" ]; then
 fi
 
 rm -f "$webm"
-echo "Wrote $out"
+echo "Wrote $(cd "$(dirname "$out")" && pwd)/$(basename "$out")"
