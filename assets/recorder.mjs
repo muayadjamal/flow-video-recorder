@@ -1,4 +1,4 @@
-// Reusable Playwright flow recorder: visible mouse cursor + click ripple,
+// Reusable Playwright flow recorder: visible arrow cursor + click ripple,
 // on-screen step captions, optional ElevenLabs voice-over, high-resolution
 // supersampled output.
 //
@@ -38,22 +38,27 @@ const SCALE = Number(process.env.SCALE || 2);
 const SLOWMO = Number(process.env.SLOWMO || 55);
 const GAP = Number(process.env.SEGMENT_GAP_MS || 280);
 
-// Injected into every page: a visible cursor dot that follows the mouse and a
-// ripple on every click.
+// Injected into every page: a macOS-style arrow cursor that follows the mouse,
+// squashes while the button is down, and leaves a ripple on every click.
 const mouseHelper = () => {
     const ensure = () => {
         if (document.getElementById('__cursor') || !document.body) return document.getElementById('__cursor');
         const s = document.createElement('style');
         s.textContent = `
-      #__cursor{position:fixed;top:-60px;left:-60px;width:28px;height:28px;border-radius:50%;
-        background:rgba(37,99,235,.35);border:3px solid #2563eb;margin:-14px 0 0 -14px;
-        pointer-events:none;z-index:2147483647;box-shadow:0 0 0 2px rgba(255,255,255,.6)}
-      .__ring{position:fixed;width:16px;height:16px;border-radius:50%;border:4px solid #2563eb;
-        margin:-8px 0 0 -8px;pointer-events:none;z-index:2147483647;animation:__r .6s ease-out forwards}
-      @keyframes __r{to{width:70px;height:70px;margin:-35px 0 0 -35px;opacity:0}}`;
+      #__cursor{position:fixed;top:-60px;left:-60px;width:30px;height:44px;margin:-2px 0 0 -3px;
+        pointer-events:none;z-index:2147483647;transform-origin:3px 2px;transition:transform .08s ease-out;
+        filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+      #__cursor.__down{transform:scale(.82)}
+      .__ring{position:fixed;width:14px;height:14px;border-radius:50%;border:3px solid rgba(0,0,0,.6);
+        box-shadow:0 0 0 2px rgba(255,255,255,.9);margin:-7px 0 0 -7px;pointer-events:none;z-index:2147483646;
+        animation:__r .55s ease-out forwards}
+      @keyframes __r{to{width:64px;height:64px;margin:-32px 0 0 -32px;opacity:0}}`;
         document.head.appendChild(s);
         const c = document.createElement('div');
         c.id = '__cursor';
+        // The standard arrow: tip at (3,2) so the hotspot sits on the mouse point.
+        c.innerHTML = '<svg viewBox="0 0 26 38" width="30" height="44" xmlns="http://www.w3.org/2000/svg">' +
+            '<path d="M3 2 L3 30 L10.2 23.4 L15 35 L19.6 33 L14.8 21.4 L24 21.4 Z" fill="#000" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg>';
         document.body.appendChild(c);
         return c;
     };
@@ -62,13 +67,18 @@ const mouseHelper = () => {
         if (c) { c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px'; }
     }, true);
     document.addEventListener('mousedown', (e) => {
-        ensure();
+        const c = ensure();
+        if (c) c.classList.add('__down');
         const r = document.createElement('div');
         r.className = '__ring';
         r.style.left = e.clientX + 'px';
         r.style.top = e.clientY + 'px';
         (document.body || document.documentElement).appendChild(r);
         setTimeout(() => r.remove(), 600);
+    }, true);
+    document.addEventListener('mouseup', () => {
+        const c = document.getElementById('__cursor');
+        if (c) c.classList.remove('__down');
     }, true);
 };
 
