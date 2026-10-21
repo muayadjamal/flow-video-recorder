@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The journey of an order</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+<script src="kit.js"></script>
+<style>
+    :root { --teal: #00757a; --teal-2: #13a3a9; --teal-soft: #e3f2f2; --orange: #f6921e; --orange-soft: #fdf0e1; --ink: #1c1917; --mute: #78716c; --paper: #f7f6f4; --line: #e7e5e4; --card: #ffffff; }
+    * { box-sizing: border-box; margin: 0; }
+    html, body { width: 2560px; height: 1440px; overflow: hidden; background: var(--paper); font-family: 'Work Sans', system-ui, sans-serif; color: var(--ink); }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    #bg { position: absolute; inset: 0; overflow: hidden; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; }
+    .blob.a { width: 1100px; height: 1100px; left: -300px; top: -400px; background: #cfe9e9; }
+    .blob.b { width: 900px; height: 900px; right: -250px; bottom: -350px; background: #fde3c4; }
+    .grid { position: absolute; inset: 0; background-image: radial-gradient(#d6d3d1 1.6px, transparent 1.6px); background-size: 48px 48px; opacity: .45; }
+
+    #world { position: absolute; left: 0; top: 0; width: 2560px; height: 1440px; transform-origin: 0 0; }
+    #wires { position: absolute; left: 0; top: 0; width: 2560px; height: 1440px; overflow: visible; pointer-events: none; }
+    #wires .track { fill: none; stroke: #d6d3d1; stroke-width: 5; stroke-dasharray: 2 14; stroke-linecap: round; }
+    #wires .line { fill: none; stroke: var(--teal); stroke-width: 6; stroke-linecap: round; }
+    #wires .line.warm { stroke: var(--orange); }
+
+    #main { position: absolute; left: 150px; right: 150px; top: 360px; bottom: 90px; display: grid; grid-template-columns: 440px 1fr 440px; column-gap: 170px; align-items: center; }
+    #right { display: flex; flex-direction: column; gap: 70px; }
+
+    .node { position: relative; height: 220px; background: var(--card); border-radius: 32px; border: 2px solid var(--line); box-shadow: 0 24px 60px rgba(28,25,23,.08); display: flex; align-items: center; gap: 28px; padding: 0 36px; }
+    .node .icon { flex: 0 0 96px; height: 96px; border-radius: 28px; display: grid; place-items: center; background: var(--teal-soft); color: var(--teal); }
+    .node .icon svg { width: 56px; height: 56px; }
+    .node.warm .icon { background: var(--orange-soft); color: var(--orange); }
+    .node .txt { min-width: 0; flex: 1; }
+    .node b { display: block; font-size: 40px; font-weight: 700; white-space: nowrap; }
+    .node .sub { display: block; margin-top: 6px; height: 40px; font-size: 28px; color: var(--mute); white-space: nowrap; overflow: hidden; }
+    .node .sub.mono { font-size: 26px; color: var(--teal); font-weight: 700; }
+    .node .ring { position: absolute; inset: -10px; border-radius: 40px; border: 4px solid var(--teal); opacity: 0; }
+    #customer { height: 300px; flex-direction: column; justify-content: center; text-align: center; gap: 22px; }
+    #customer b { font-size: 38px; }
+    #customer .icon { flex: none; width: 112px; height: 112px; }
+    #customer .txt { flex: none; }
+
+    #order { justify-self: center; width: 960px; background: var(--card); border-radius: 36px; border: 2px solid var(--line); box-shadow: 0 40px 90px rgba(28,25,23,.12); padding: 40px 48px 36px; position: relative; }
+    #order .head { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    #order .ref { font-size: 40px; font-weight: 700; }
+    .badge { display: inline-flex; align-items: center; height: 54px; padding: 0 26px; border-radius: 27px; font-size: 28px; font-weight: 700; background: var(--orange-soft); color: #b45f06; white-space: nowrap; }
+    #order .who { font-size: 28px; color: var(--mute); margin-top: 8px; height: 40px; white-space: nowrap; overflow: hidden; }
+    #rows { position: relative; margin-top: 26px; border-top: 2px solid var(--line); }
+    .row { display: grid; grid-template-columns: 210px 1fr 200px 120px; align-items: center; height: 76px; border-bottom: 2px solid var(--line); font-size: 29px; position: relative; }
+    .row .sku { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 26px; color: var(--teal); }
+    .row .desc { white-space: nowrap; overflow: hidden; }
+    .row .amt { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .row .mark { display: grid; place-items: center; justify-self: end; width: 52px; height: 52px; }
+    .row .mark .ok { width: 52px; height: 52px; border-radius: 50%; background: var(--teal); color: #fff; display: grid; place-items: center; }
+    .row .mark .ok svg { width: 30px; height: 30px; }
+    .row .flash { position: absolute; inset: 4px -16px; border-radius: 14px; background: var(--orange-soft); opacity: 0; z-index: -1; }
+    .diff { position: absolute; right: 340px; top: 50%; transform: translateY(-50%); background: var(--orange); color: #fff; font-weight: 700; font-size: 24px; padding: 8px 16px; border-radius: 12px; white-space: nowrap; opacity: 0; }
+    #scan { position: absolute; left: -24px; right: -24px; top: 0; height: 8px; border-radius: 4px; background: var(--teal-2); box-shadow: 0 0 40px 14px rgba(19,163,169,.35); opacity: 0; }
+    #order .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 30px; height: 120px; }
+    .ai { display: flex; align-items: center; gap: 24px; }
+    .ai svg { width: 116px; height: 116px; transform: rotate(-90deg); }
+    .ai .pct { position: absolute; width: 116px; text-align: center; font-size: 32px; font-weight: 800; color: var(--teal); }
+    .ai .lbl { font-size: 28px; color: var(--mute); line-height: 1.25; }
+    .total { text-align: right; }
+    .total small { display: block; font-size: 26px; color: var(--mute); }
+    .total b { font-size: 50px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    #stamp { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%) rotate(-8deg); border: 10px solid var(--teal); color: var(--teal); background: rgba(255,255,255,.88); font-weight: 800; font-size: 96px; letter-spacing: .08em; padding: 6px 44px; border-radius: 26px; opacity: 0; }
+    #glow { position: absolute; inset: -6px; border-radius: 40px; border: 6px solid var(--teal); box-shadow: 0 0 60px rgba(0,117,122,.35); opacity: 0; }
+
+    .token { position: absolute; left: 0; top: 0; opacity: 0; z-index: 5; }
+    #env, #po { width: 128px; height: 92px; filter: drop-shadow(0 14px 24px rgba(28,25,23,.18)); }
+    .pulse { width: 40px; height: 40px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 10px rgba(0,117,122,.18), 0 0 30px rgba(0,117,122,.5); }
+    #truck { width: 150px; height: 96px; }
+    #plane { width: 96px; height: 96px; }
+    #coin { width: 92px; height: 92px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffd08a, var(--orange) 60%, #c56b06); color: #fff; display: grid; place-items: center; font-size: 50px; font-weight: 800; box-shadow: 0 12px 26px rgba(197,107,6,.4); }
+    .spark { position: absolute; width: 22px; height: 22px; border-radius: 50%; opacity: 0; z-index: 6; }
+
+    #hud { position: absolute; left: 0; right: 0; top: 0; height: 300px; padding: 70px 220px 0; background: linear-gradient(var(--paper) 65%, rgba(247,246,244,0)); z-index: 10; }
+    #hud .kicker { font-size: 28px; letter-spacing: .2em; text-transform: uppercase; color: var(--teal); font-weight: 700; height: 40px; }
+    #steps { position: relative; margin-top: 34px; display: flex; justify-content: space-between; }
+    .step { width: 200px; display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative; z-index: 1; }
+    .step .dot { width: 48px; height: 48px; border-radius: 50%; background: var(--paper); border: 6px solid #d6d3d1; }
+    .step span { font-size: 28px; font-weight: 600; color: #a8a29e; white-space: nowrap; }
+    #rail, #fill { position: absolute; height: 8px; border-radius: 4px; }
+    #rail { background: #e7e5e4; }
+    #fill { background: linear-gradient(90deg, var(--teal), var(--teal-2)); box-shadow: 0 0 18px rgba(19,163,169,.5); }
+</style>
+</head>
+<body>
+<div id="bg"><div class="blob a"></div><div class="blob b"></div><div class="grid"></div></div>
+
+<div id="world">
+    <svg id="wires"></svg>
+    <div id="main">
+        <div class="node lint" id="customer" data-row="mid">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6M12 9.5v.01"/></svg></div>
+            <div class="txt"><b>St. John's School</b><span class="sub">Vancouver, BC</span></div>
+        </div>
+
+        <div id="order" class="lint" data-row="mid">
+            <div id="glow" class="deco"></div>
+            <div class="head"><span class="ref mono">ORD-2026-0146</span><span class="badge" id="status">Quoting</span></div>
+            <div class="who" id="who">Quote request from St. John's School</div>
+            <div id="rows">
+                <div id="scan" class="deco"></div>
+                <div class="row"><span class="sku">GDX-ODO</span><span class="desc lint">Optical DO Probe</span><span class="amt lint">1 × 469</span><span class="mark"><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></span></div>
+                <div class="row"><span class="sku">GDX-O2</span><span class="desc lint">O2 Gas Sensor</span><span class="amt lint">6 × 279</span><span class="mark"><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></span></div>
+                <div class="row" id="co2"><span class="flash deco"></span><span class="sku">GDX-CO2</span><span class="desc lint">CO2 Gas Sensor</span><span class="amt lint">4 × 349</span><span class="mark"><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></span></div>
+                <div class="row"><span class="sku">GDX-CART</span><span class="desc lint">Sensor Cart</span><span class="amt lint">4 × 219</span><span class="mark"><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></span></div>
+            </div>
+            <div class="foot">
+                <div class="ai"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#e7e5e4" stroke-width="12"/><circle id="arc" cx="60" cy="60" r="50" fill="none" stroke="#00757a" stroke-width="12" stroke-linecap="round"/></svg><span class="pct" id="pct">0%</span><span class="lbl">AI read<br>confidence</span></div>
+                <div class="total"><small>Subtotal</small><b>CA$<span id="sum">0</span></b></div>
+            </div>
+            <div id="stamp" class="deco">APPROVED</div>
+        </div>
+
+        <div id="right">
+            <div class="node lint" id="qb"><div class="ring deco"></div>
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg></div>
+                <div class="txt"><b>QuickBooks</b><span class="sub" id="qbSub">Accounting</span></div>
+            </div>
+            <div class="node lint" id="vus"><div class="ring deco"></div>
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
+                <div class="txt"><b>Vernier US</b><span class="sub" id="vusSub">Supplier</span></div>
+            </div>
+            <div class="node lint warm" id="ups"><div class="ring deco"></div>
+                <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h11v9H2zM13 10h4l4 3v3h-8"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></div>
+                <div class="txt"><b>UPS</b><span class="sub" id="upsSub">Shipping</span></div>
+            </div>
+        </div>
+    </div>
+
+    <svg class="token" id="env" viewBox="0 0 128 92"><rect x="3" y="3" width="122" height="86" rx="12" fill="#fff" stroke="#00757a" stroke-width="5"/><path d="M8 10l56 42 56-42" fill="none" stroke="#00757a" stroke-width="5" stroke-linejoin="round"/></svg>
+    <svg class="token" id="po" viewBox="0 0 128 92"><rect x="3" y="3" width="122" height="86" rx="12" fill="#fff" stroke="#f6921e" stroke-width="5"/><text x="64" y="60" text-anchor="middle" font-family="Work Sans" font-weight="800" font-size="34" fill="#f6921e">PO</text></svg>
+    <div class="token pulse" id="p1"></div>
+    <svg class="token" id="plane" viewBox="0 0 24 24" fill="#00757a"><path d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V8.5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5z"/></svg>
+    <svg class="token" id="truck" viewBox="0 0 150 96"><rect x="4" y="16" width="86" height="56" rx="8" fill="#f6921e"/><path d="M90 34h30l22 20v18H90z" fill="#c56b06"/><rect x="100" y="40" width="18" height="12" rx="2" fill="#fde3c4"/><circle cx="32" cy="78" r="13" fill="#1c1917"/><circle cx="116" cy="78" r="13" fill="#1c1917"/><circle cx="32" cy="78" r="5" fill="#d6d3d1"/><circle cx="116" cy="78" r="5" fill="#d6d3d1"/></svg>
+    <div class="token" id="coin">$</div>
+    <div id="sparks"></div>
+</div>
+
+<div id="hud">
+    <div class="kicker">The journey of an order</div>
+    <div id="steps">
+        <div id="rail"></div><div id="fill"></div>
+        <div class="step" data-row="steps"><div class="dot"></div><span>Quoting</span></div>
+        <div class="step" data-row="steps"><div class="dot"></div><span>Quoted</span></div>
+        <div class="step" data-row="steps"><div class="dot"></div><span>PO received</span></div>
+        <div class="step" data-row="steps"><div class="dot"></div><span>Ordered</span></div>
+        <div class="step" data-row="steps"><div class="dot"></div><span>Shipped</span></div>
+        <div class="step" data-row="steps"><div class="dot"></div><span>Invoiced</span></div>
+        <div class="step" data-row="steps"><div class="dot"></div><span>Paid</span></div>
+        <div class="step" data-row="steps"><div class="dot"></div><span>Closed</span></div>
+    </div>
+</div>
+
+<script>
+gsap.registerPlugin(MotionPathPlugin);
+let L = {};
+let dots = [];
+
+window.setup = () => {
+    // Connectors, measured from the laid-out cards.
+    L.cust = K.link('#customer', '#order', { from: 'right', to: 'left' });
+    L.qb = K.link('#order', '#qb', { from: 'right', to: 'left' });
+    L.vus = K.link('#order', '#vus', { from: 'right', to: 'left' });
+    L.ups = K.link('#order', '#ups', { from: 'right', to: 'left', cls: 'warm' });
+
+    // Stepper rail runs dot centre to dot centre.
+    const steps = document.getElementById('steps').getBoundingClientRect();
+    dots = [...document.querySelectorAll('.step .dot')].map((d) => {
+        const r = d.getBoundingClientRect();
+        return { el: d, x: r.left + r.width / 2 - steps.left, y: r.top + r.height / 2 - steps.top };
+    });
+    const first = dots[0];
+    const last = dots.at(-1);
+    gsap.set('#rail', { left: first.x, top: first.y - 4, width: last.x - first.x });
+    gsap.set('#fill', { left: first.x, top: first.y - 4, width: 0 });
+
+    // Tokens start where their journey starts.
+    const start = (p) => { const pt = p.line.getPointAtLength(0); return [pt.x, pt.y]; };
+    K.place(document.getElementById('env'), start(L.cust));
+    K.place(document.getElementById('po'), start(L.cust));
+    K.place(document.getElementById('coin'), start(L.cust));
+    K.place(document.getElementById('p1'), start(L.qb));
+    K.place(document.getElementById('plane'), start(L.vus));
+    K.place(document.getElementById('truck'), start(L.ups));
+
+    // Sparks around the card for the close.
+    const o = K.box('#order');
+    const colors = ['#00757a', '#13a3a9', '#f6921e', '#fbbf68'];
+    for (let i = 0; i < 26; i++) {
+        const s = document.createElement('div');
+        s.className = 'spark';
+        s.style.background = colors[i % colors.length];
+        s.style.left = `${o.cx - 11}px`;
+        s.style.top = `${o.cy - 11}px`;
+        document.getElementById('sparks').appendChild(s);
+    }
+};
+
+window.timeline = () => {
+    const c = K.cue;
+    const D = window.__DURATION_MS / 1000;
+    const tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
+    const along = (el, link, at, dur = 1.1, ease = 'power2.inOut', extra = {}) =>
+        tl.to(el, { motionPath: { path: link.line, align: link.line, alignOrigin: [0.5, 0.5] }, duration: dur, ease, ...extra }, at);
+    const draw = (link, at, dur = 0.8) => tl.to(link.line, { strokeDashoffset: 0, duration: dur, ease: 'power2.inOut' }, at);
+    const swap = (el, text, at, style = {}) => {
+        tl.to(el, { opacity: 0, y: -12, duration: 0.16, ease: 'power2.in' }, at)
+          .set(el, { textContent: text, ...style }, at + 0.16)
+          .fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.3, immediateRender: false }, at + 0.16);
+    };
+    const step = (i, at) => {
+        tl.to('#fill', { width: dots[i].x - dots[0].x, duration: 0.7, ease: 'power2.inOut' }, at);
+        tl.to(dots[i].el, { borderColor: '#00757a', backgroundColor: '#00757a', duration: 0.2 }, at + 0.55)
+          .fromTo(dots[i].el, { scale: 1.5 }, { scale: 1, duration: 0.5, ease: 'back.out(3)', immediateRender: false }, at + 0.55)
+          .to(dots[i].el.nextElementSibling, { color: '#1c1917', duration: 0.2 }, at + 0.55);
+    };
+    const pop = (el, at) => tl.fromTo(el, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' }, at);
+    const ping = (el, at) => tl.fromTo(`${el} .ring`, { opacity: 0.9, scale: 1 }, { opacity: 0, scale: 1.12, duration: 0.8, ease: 'power2.out', immediateRender: false }, at);
+
+    // Camera: frame a pair of elements, leaving room for the HUD at the top.
+    const frame = (a, b, scale, at, dur = 1.3) => {
+        const A = K.box(a);
+        const B = K.box(b);
+        const cx = (Math.min(A.x, B.x) + Math.max(A.r, B.r)) / 2;
+        const cy = (Math.min(A.y, B.y) + Math.max(A.b, B.b)) / 2;
+        tl.to('#world', { x: 1280 - cx * scale, y: 830 - cy * scale, scale, duration: dur, ease: 'power3.inOut' }, at);
+    };
+    const full = (at, scale = 1) => tl.to('#world', { x: 1280 - 1280 * scale, y: 760 - 760 * scale, scale, duration: 1.4, ease: 'power3.inOut' }, at);
+
+    // Opening: everything hidden, camera close on the school.
+    const ob = K.box('#order');
+    const cb = K.box('#customer');
+    const s0 = 1.28;
+    const cx0 = (cb.x + ob.r) / 2;
+    const cy0 = (Math.min(cb.y, ob.y) + Math.max(cb.b, ob.b)) / 2;
+    tl.set('#world', { x: 1280 - cx0 * s0, y: 830 - cy0 * s0, scale: s0 }, 0);
+    tl.set(['#order', '#qb', '#vus', '#ups', '#customer'], { opacity: 0 }, 0);
+    tl.set('.row', { opacity: 0 }, 0);
+    tl.set('.row .ok', { scale: 0 }, 0);
+    const C = 2 * Math.PI * 50;
+    tl.set('#arc', { strokeDasharray: C, strokeDashoffset: C }, 0);
+
+    // Background never stops moving.
+    tl.to('.blob.a', { x: 260, y: 140, duration: D, ease: 'sine.inOut' }, 0);
+    tl.to('.blob.b', { x: -220, y: -120, duration: D, ease: 'sine.inOut' }, 0);
+    tl.to('.grid', { backgroundPosition: '96px 48px', duration: D, ease: 'none' }, 0);
+    tl.to('#wires .track', { strokeDashoffset: -16 * Math.ceil(D * 3), duration: D, ease: 'none' }, 0);
+
+    tl.from('#hud', { y: -60, opacity: 0, duration: 0.8 }, 0.25);
+    tl.set(dots[0].el, { borderColor: '#00757a', backgroundColor: '#00757a' }, 0);
+    tl.set(dots[0].el.nextElementSibling, { color: '#1c1917' }, 0);
+    pop('#customer', 0.45);
+    K.float(tl, '#customer', { amp: 10, period: 3 });
+
+    // {email} the school writes in.
+    const e = c('email');
+    pop('#env', e - 0.25);
+    draw(L.cust, e, 1.0);
+    along('#env', L.cust, e + 0.15, 1.1);
+    tl.to('#env', { scale: 0.3, opacity: 0, duration: 0.25, ease: 'power2.in' }, e + 1.2);
+    tl.fromTo('#order', { opacity: 0, scale: 0.4, transformOrigin: '0% 50%' }, { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.3)' }, e + 1.15);
+
+    // {ai} the AI reads: a scan line sweeps, lines land, confidence fills.
+    const a = c('ai');
+    const rowsH = document.getElementById('rows').offsetHeight;
+    tl.fromTo('#scan', { y: 0, opacity: 0 }, { opacity: 1, duration: 0.15 }, a);
+    tl.to('#scan', { y: rowsH - 8, duration: 1.2, ease: 'power1.inOut' }, a);
+    tl.to('#scan', { opacity: 0, duration: 0.2 }, a + 1.2);
+    tl.fromTo('.row', { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.4, stagger: 0.27, immediateRender: false }, a + 0.1);
+    tl.to('#arc', { strokeDashoffset: C * 0.01, duration: 1.4, ease: 'power2.out' }, a + 0.3);
+    K.count(tl, document.getElementById('pct'), 99, a + 0.3, { duration: 1.4, fmt: (v) => `${Math.round(v)}%` });
+    K.count(tl, document.getElementById('sum'), 4415, a + 0.3, { duration: 1.4 });
+
+    // {approve} the stamp lands.
+    const ap = c('approve');
+    tl.fromTo('#stamp', { opacity: 0, scale: 2.6, rotation: -20 }, { opacity: 1, scale: 1, rotation: -8, duration: 0.32, ease: 'power4.in' }, ap);
+    tl.to('#order', { x: 9, duration: 0.05, yoyo: true, repeat: 5, ease: 'none' }, ap + 0.32).set('#order', { x: 0 }, ap + 0.62);
+    swap('#status', 'Quoted', ap + 0.3, { backgroundColor: '#e3f2f2', color: '#00757a' });
+    step(1, ap + 0.2);
+    tl.to('#stamp', { opacity: 0, scale: 0.9, duration: 0.4, ease: 'power2.in' }, ap + 1.6);
+
+    // {qb} estimate travels to QuickBooks.
+    const q = c('qb');
+    frame('#order', '#right', 1.12, q - 0.9);
+    pop('#qb', q - 0.35);
+    draw(L.qb, q, 0.6);
+    pop('#p1', q);
+    along('#p1', L.qb, q + 0.05, 0.75);
+    tl.to('#p1', { opacity: 0, scale: 2, duration: 0.3 }, q + 0.8);
+    ping('#qb', q + 0.8);
+    swap('#qbSub', 'Estimate #1053', q + 0.8, { fontFamily: "'JetBrains Mono', monospace", fontSize: '26px', fontWeight: 700, color: '#00757a' });
+
+    // {po} the purchase order arrives from the school.
+    const p = c('po');
+    frame('#customer', '#order', 1.12, p - 0.9);
+    pop('#po', p - 0.2);
+    along('#po', L.cust, p, 1.0);
+    tl.to('#po', { scale: 0.3, opacity: 0, duration: 0.25 }, p + 1.0);
+    swap('#who', 'PO SJS-2026-0417 from St. John\'s School', p + 0.95);
+    step(2, p + 0.9);
+    swap('#status', 'PO received', p + 1.1);
+
+    // {compare} every line is checked; one price differs.
+    const k = c('compare');
+    tl.to('.row .ok', { scale: 1, duration: 0.35, stagger: 0.22, ease: 'back.out(3)' }, k);
+    tl.to('#co2 .flash', { opacity: 1, duration: 0.25, yoyo: true, repeat: 3 }, k + 0.4);
+    tl.to('#co2 .flash', { opacity: 1, duration: 0.2 }, k + 1.4);
+    swap('#co2 .desc', 'PO 319 vs quote 349', k + 0.5, { color: '#c56b06', fontWeight: 700 });
+    tl.set('#co2 .ok', { backgroundColor: '#f6921e' }, k + 0.44);
+
+    // {vus} off to Vernier US.
+    const v = c('vus');
+    frame('#order', '#right', 1.12, v - 0.9);
+    tl.to('#co2 .flash', { opacity: 0, duration: 0.4 }, v - 0.3);
+    swap('#co2 .desc', 'CO2 Gas Sensor', v - 0.3, { color: '#1c1917', fontWeight: 400 });
+    pop('#vus', v - 0.35);
+    draw(L.vus, v, 0.6);
+    pop('#plane', v);
+    along('#plane', L.vus, v + 0.05, 0.85, 'power2.inOut', { motionPath: { path: L.vus.line, align: L.vus.line, alignOrigin: [0.5, 0.5], autoRotate: 90 } });
+    tl.to('#plane', { opacity: 0, scale: 1.6, duration: 0.3 }, v + 0.9);
+    ping('#vus', v + 0.9);
+    swap('#vusSub', 'VUS-2026-18450', v + 0.9, { fontFamily: "'JetBrains Mono', monospace", fontSize: '26px', fontWeight: 700, color: '#00757a' });
+    step(3, v + 0.6);
+    swap('#status', 'Ordered', v + 0.9);
+
+    // {ups} the truck drives it out.
+    const u = c('ups');
+    pop('#ups', u - 0.35);
+    draw(L.ups, u, 0.6);
+    pop('#truck', u);
+    along('#truck', L.ups, u + 0.05, 1.0, 'power1.inOut');
+    tl.to('#truck', { opacity: 0, x: '+=40', duration: 0.3 }, u + 1.05);
+    ping('#ups', u + 1.05);
+    swap('#upsSub', 'CA$157.59', u + 1.05, { fontFamily: "'JetBrains Mono', monospace", fontSize: '26px', fontWeight: 700, color: '#00757a' });
+    step(4, u + 0.4);
+    step(5, u + 1.1);
+    swap('#status', 'Shipped', u + 0.6);
+
+    // {paid} money comes back from the school.
+    const pd = c('paid');
+    full(pd - 1.0, 0.98);
+    pop('#coin', pd - 0.2);
+    along('#coin', L.cust, pd, 1.0, 'power2.inOut', { rotationY: 720 });
+    tl.to('#coin', { opacity: 0, scale: 0.4, duration: 0.25 }, pd + 1.0);
+    step(6, pd + 0.8);
+    swap('#status', 'Paid', pd + 1.0);
+
+    // {closed} done: glow, sparks, the last step.
+    const cl = c('closed');
+    step(7, cl);
+    swap('#status', 'Closed', cl + 0.3, { backgroundColor: '#00757a', color: '#ffffff' });
+    tl.fromTo('#glow', { opacity: 0 }, { opacity: 1, duration: 0.4, yoyo: true, repeat: 1 }, cl + 0.3);
+    tl.to('#glow', { opacity: 1, duration: 0.4 }, cl + 1.1);
+    document.querySelectorAll('.spark').forEach((s, i) => {
+        const ang = (i / 26) * Math.PI * 2;
+        const dist = 520 + (i % 5) * 70;
+        tl.fromTo(s, { opacity: 1, x: 0, y: 0, scale: 1 },
+            { opacity: 0, x: Math.cos(ang) * dist, y: Math.sin(ang) * dist * 0.6, scale: 0.3, duration: 1.3, ease: 'power3.out', immediateRender: false }, cl + 0.35 + (i % 3) * 0.04);
+    });
+    tl.fromTo('#order', { scale: 1 }, { scale: 1.04, duration: 0.3, yoyo: true, repeat: 1, ease: 'power2.out', immediateRender: false }, cl + 0.3);
+
+    // Keep the stage alive to the last frame.
+    ['#qb', '#vus', '#ups'].forEach((n, i) => K.float(tl, n, { amp: 8, period: 2.8 + i * 0.3, delay: 0.2 * i }));
+    tl.to({}, { duration: 0.01 }, D);
+    return tl;
+};
+</script>
+</body>
+</html>

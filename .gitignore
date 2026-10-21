@@ -1,0 +1,7 @@
+node_modules/
+*.mp4
+*.webm
+*.mov
+*.timeline.json
+preview/
+.DS_Store

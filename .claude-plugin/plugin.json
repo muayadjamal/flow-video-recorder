@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "flow-video-recorder",
+  "description": "Record a narrated, captioned demo video of a flow through a web app (Playwright) or native iOS app (Maestro), with cursor, tap ripples, ElevenLabs voice-over and optional motion-graphics scenes.",
+  "version": "1.0.0",
+  "author": { "name": "Muayad Jamal", "url": "https://github.com/muayadjamal" },
+  "homepage": "https://github.com/muayadjamal/flow-video-recorder",
+  "repository": "https://github.com/muayadjamal/flow-video-recorder",
+  "license": "MIT",
+  "keywords": ["video", "demo", "screen-recording", "playwright", "maestro", "ios", "elevenlabs", "voice-over", "motion-graphics"],
+  "skills": ["./"]
+}

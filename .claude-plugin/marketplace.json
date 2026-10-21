@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "flow-video-recorder",
+  "owner": {
+    "name": "Muayad Jamal",
+    "url": "https://github.com/muayadjamal"
+  },
+  "plugins": [
+    {
+      "name": "flow-video-recorder",
+      "source": "./",
+      "description": "Record a narrated, captioned demo video of a flow through a web or native iOS app.",
+      "version": "1.0.0"
+    }
+  ],
+  "description": "Skill that records narrated, captioned demo videos of web and native iOS apps."
+}
