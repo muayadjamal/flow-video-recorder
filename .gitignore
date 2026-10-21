@@ -5,3 +5,4 @@ node_modules/
 *.timeline.json
 preview/
 .DS_Store
+.playwright-mcp/
