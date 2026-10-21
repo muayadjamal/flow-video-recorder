@@ -33,12 +33,16 @@ Every video on [edumind.school/course](https://edumind.school/course?lang=en) wa
 
 ## Install
 
-Claude Code, as a plugin (updates itself):
+Claude Code, as a plugin (updates itself). Two commands, run one after the other:
 
-```text
-/plugin marketplace add muayadjamal/flow-video-recorder
-/plugin install flow-video-recorder@flow-video-recorder
-```
+1. Add the marketplace:
+   ```text
+   /plugin marketplace add muayadjamal/flow-video-recorder
+   ```
+2. Install the plugin:
+   ```text
+   /plugin install flow-video-recorder@flow-video-recorder
+   ```
 
 Claude Code, Codex, Cursor and other agents, through [skills.sh](https://skills.sh/muayadjamal/flow-video-recorder) (copies the files so you can edit them):
 
