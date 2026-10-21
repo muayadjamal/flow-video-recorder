@@ -7,6 +7,7 @@
 
 <p align="center">
   <a href="https://skills.sh/muayadjamal/flow-video-recorder"><img alt="skills.sh" src="https://skills.sh/b/muayadjamal/flow-video-recorder"></a>
+  <a href="https://github.com/muayadjamal/flow-video-recorder/actions/workflows/validate.yml"><img alt="CI" src="https://github.com/muayadjamal/flow-video-recorder/actions/workflows/validate.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
@@ -146,7 +147,7 @@ The full method, every environment knob, and the gotchas are in [SKILL.md](SKILL
 - A question, or a video you made with it: [Discussions](https://github.com/muayadjamal/flow-video-recorder/discussions).
 - A security problem: see [SECURITY.md](.github/SECURITY.md).
 
-Pull requests are welcome. Keep one change per PR and run `claude plugin validate .` before opening it.
+Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) has the layout, the checks to run, and the versioning rule.
 
 ## License
 

@@ -418,14 +418,14 @@ anything that has to land on a syllable.
   stretches the video, since every step waits for its line. `NARRATION_SPEED`
   is set to 1.1 for that reason. Nudge it up before you start cutting content.
 - **Spell for the ear.** `text` is never shown, so write names the way they
-  should be read. "Telen Cephalon" reads correctly; "TeleNCephalon" does not.
+  should be read. "Lumen Goods" reads correctly; "LumenGOODS" does not.
   Keep the real spelling in `caption`.
 - **One flowing sentence beats four short ones.** The voice takes a full beat at
   every full stop, and a run of fragments turns into seconds of gaps. Commas and
   colons keep it moving. `tts.mjs` also caps every pause at 0.3s, so both
   together get you a clip with no holes in it.
 - **Never say on the soundtrack what you have not put on screen.** If the line
-  says "two batches, both requisitions", assert exactly that and throw if it is
+  says "two orders, both overdue", assert exactly that and throw if it is
   not true. An LLM feature that classifies non-deterministically will eventually
   hand you a run where the voice is confidently wrong, and a video that lies is
   worse than no video.
@@ -459,7 +459,7 @@ where a short animated scene earns its place, spliced between two recorded
 steps with a transition on each side.
 
 A scene is not a slide. It is a small animated story: things travel (an email
-flies from the customer to the order, a truck drives to UPS), things react (a
+flies from the customer to the order, a truck drives to the courier), things react (a
 stamp slams down, a counter ticks up, a node pings when data lands), the
 camera follows the action, and every beat lands on the word that names it. If
 a frame of it would pass as a presentation slide, it is not done.
@@ -489,8 +489,8 @@ Run `record.sh` first. The plan points at its MP4 and timeline:
   "parts": [
     { "flow": ["order-stepper"] },
     { "motion": "scenes/journey.html", "id": "m-journey",
-      "text": "Here is the whole journey. {email}It starts when the school emails a quote request. {ai}The AI reads it…" },
-    { "flow": ["po-arrives", "po-task"] }
+      "text": "Here is the whole journey. {email}It starts when a customer places an order. {ai}The system reads it…" },
+    { "flow": ["amendment-arrives", "amendment-task"] }
   ]
 }
 ```

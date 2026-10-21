@@ -1,0 +1,4 @@
+interface:
+  display_name: "Flow Video Recorder"
+  short_description: "Record a narrated demo video of an app flow"
+  default_prompt: "Use $flow-video-recorder to record a narrated, captioned demo video of this flow."
