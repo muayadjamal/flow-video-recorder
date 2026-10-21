@@ -108,6 +108,13 @@ Narration engine, picked automatically from the environment or forced with `TTS_
 | `say` | macOS |
 | `command` | `TTS_COMMAND`, a shell line that reads `$TTS_TEXT` and writes `$TTS_OUT` |
 
+A ready-made command for [Chatterbox](https://github.com/resemble-ai/chatterbox), an open-source model that runs offline, ships in `assets/tts-chatterbox.py`:
+
+```bash
+python3.12 -m venv ~/.chatterbox && ~/.chatterbox/bin/pip install "git+https://github.com/resemble-ai/chatterbox.git"
+TTS_COMMAND='~/.chatterbox/bin/python <skill>/assets/tts-chatterbox.py' bash <skill>/assets/record.sh flow.mjs demo.mp4
+```
+
 ```bash
 TTS_COMMAND='piper --model en_US-lessac-medium.onnx --output_file "$TTS_OUT" <<< "$TTS_TEXT"' \
   bash <skill>/assets/record.sh flow.mjs demo.mp4
@@ -132,7 +139,7 @@ The full method, every environment knob, and the gotchas are in [SKILL.md](SKILL
 | `SKILL.md` | The instructions the agent follows |
 | `assets/record.sh`, `assets/recorder.mjs` | Browser entry point and Playwright driver |
 | `assets/record-ios.sh`, `assets/ios-recorder.mjs`, `assets/ios-compose.mjs` | iOS entry point, Maestro driver, overlay compositor |
-| `assets/tts.mjs`, `assets/mux.mjs` | Narration through ElevenLabs, OpenAI, macOS say or a custom command, with caching; audio muxing |
+| `assets/tts.mjs`, `assets/mux.mjs`, `assets/tts-chatterbox.py` | Narration through ElevenLabs, OpenAI, macOS say or a custom command, with caching; audio muxing; offline Chatterbox wrapper |
 | `assets/motion.mjs`, `assets/assemble.mjs`, `assets/kit.js`, `assets/preview.mjs` | Motion-graphics renderer, assembler, scene helpers, preview |
 | `assets/*.example.*` | A browser flow, an iOS flow, two scenes and a plan to copy from |
 | `assets/ios-calibrate.mjs` | Measures capture clock drift on a simulator |
