@@ -1,0 +1,20 @@
+name: Feature request
+description: Something the skill should do and does not.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to record, and what gets in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like it to do instead?
+    validations:
+      required: true
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround, if any

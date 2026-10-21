@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/muayadjamal/flow-video-recorder/discussions
+    about: Ask how to do something, or share a recording you made with it.
