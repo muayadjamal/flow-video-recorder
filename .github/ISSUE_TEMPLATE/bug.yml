@@ -1,0 +1,49 @@
+name: Bug report
+description: A recording failed or came out wrong.
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Skill version
+      description: The `metadata.version` at the top of SKILL.md.
+      placeholder: "1.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options: [Browser (record.sh), Native iOS (record-ios.sh), Motion graphics (assemble.mjs)]
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Node version, ffmpeg version, and for iOS the Xcode and Maestro versions.
+      placeholder: "macOS 26.1, Node 22.12, ffmpeg 7.1"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      description: Include the env variables, with any API keys removed.
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: What happened
+      description: Paste the recorder's output, including the segment table if it got that far.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true

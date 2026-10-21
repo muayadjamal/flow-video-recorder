@@ -139,6 +139,15 @@ The full method, every environment knob, and the gotchas are in [SKILL.md](SKILL
 | `assets/*.example.*` | A browser flow, an iOS flow, two scenes and a plan to copy from |
 | `assets/ios-calibrate.mjs` | Measures capture clock drift on a simulator |
 
+## Support
+
+- A recording failed or came out wrong: [open a bug report](https://github.com/muayadjamal/flow-video-recorder/issues/new?template=bug.yml) with the command you ran and the recorder's output.
+- Something it should do and does not: [request a feature](https://github.com/muayadjamal/flow-video-recorder/issues/new?template=feature.yml).
+- A question, or a video you made with it: [Discussions](https://github.com/muayadjamal/flow-video-recorder/discussions).
+- A security problem: see [SECURITY.md](.github/SECURITY.md).
+
+Pull requests are welcome. Keep one change per PR and run `claude plugin validate .` before opening it.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
