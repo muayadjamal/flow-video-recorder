@@ -2,7 +2,7 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either

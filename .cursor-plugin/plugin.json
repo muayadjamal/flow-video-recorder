@@ -1,10 +1,22 @@
 {
   "name": "flow-video-recorder",
   "description": "Record a narrated, captioned demo video of a flow through a web app (Playwright) or native iOS app (Maestro), with cursor, tap ripples, voice-over and optional motion-graphics scenes.",
-  "version": "1.1.0",
-  "author": { "name": "Muayad Jamal", "url": "https://github.com/muayadjamal" },
+  "version": "1.2.0",
+  "author": {
+    "name": "Muayad Jamal",
+    "url": "https://github.com/muayadjamal"
+  },
   "homepage": "https://github.com/muayadjamal/flow-video-recorder",
   "repository": "https://github.com/muayadjamal/flow-video-recorder",
   "license": "MIT",
-  "keywords": ["video", "demo", "screen-recording", "playwright", "maestro", "ios", "voice-over", "motion-graphics"]
+  "keywords": [
+    "video",
+    "demo",
+    "screen-recording",
+    "playwright",
+    "maestro",
+    "ios",
+    "voice-over",
+    "motion-graphics"
+  ]
 }
