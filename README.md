@@ -41,6 +41,12 @@ npx skills add muayadjamal/flow-video-recorder -g                    # for every
 npx skills add muayadjamal/flow-video-recorder -g -a claude-code     # one agent only
 ```
 
+Codex, from inside a session:
+
+```text
+$skill-installer install https://github.com/muayadjamal/flow-video-recorder
+```
+
 By hand:
 
 ```bash
