@@ -25,7 +25,7 @@
 // Env: UDID (default: the booted simulator), BUNDLE_ID, OUT_DIR (default ./out),
 //      NARRATION=0 to force silent, SEGMENT_GAP_MS (280), LEAD_IN_MS (400),
 //      SCALE (points→pixels, default auto), MAESTRO (path to the binary),
-//      ELEVENLABS_API_KEY.
+//      ELEVENLABS_API_KEY / OPENAI_API_KEY / TTS_COMMAND (see tts.mjs).
 
 import { execFile, execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
@@ -133,18 +133,21 @@ console.error(`planned ${ops.length} steps (${actions.length} on the device)`);
 
 // ── Voice-over: synthesize and measure everything up front ───────────────
 const narration = Array.isArray(mod.narration) ? mod.narration : [];
-const wantVoice = narration.length > 0 && process.env.NARRATION !== '0' && !!process.env.ELEVENLABS_API_KEY;
+const tts = narration.length > 0
+    ? await import(pathToFileURL(path.resolve(path.dirname(flowPath), 'tts.mjs')).href)
+    : null;
+const ttsProvider = tts ? tts.provider() : null;
+const wantVoice = narration.length > 0 && process.env.NARRATION !== '0' && !!ttsProvider;
 let clips = new Map();
 
 if (narration.length > 0 && !wantVoice) {
-    console.error(process.env.ELEVENLABS_API_KEY
+    console.error(ttsProvider
         ? 'Narration disabled (NARRATION=0) — recording captions only.'
-        : 'No ELEVENLABS_API_KEY — recording captions only.');
+        : 'No TTS configured (ELEVENLABS_API_KEY, OPENAI_API_KEY, TTS_COMMAND, or macOS say) — recording captions only.');
 }
 if (wantVoice) {
     console.error(`Synthesizing ${narration.length} narration clips…`);
-    const { synthesize } = await import(pathToFileURL(path.resolve(path.dirname(flowPath), 'tts.mjs')).href);
-    clips = await synthesize(narration);
+    clips = await tts.synthesize(narration);
 }
 const script = new Map(narration.map((s) => [s.id, s]));
 

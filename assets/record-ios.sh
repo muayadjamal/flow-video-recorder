@@ -7,7 +7,7 @@
 #           app installed, and Maestro (~/.maestro/bin/maestro).
 # Env: UDID (default: the booted simulator), BUNDLE_ID, OUT_W (output width,
 #      default 1080), CRF (16), TAIL_MS (1200), SCALE (points→pixels, auto),
-#      ELEVENLABS_API_KEY (enables narration), NARRATION=0 (force silent).
+#      TTS: ELEVENLABS_API_KEY, OPENAI_API_KEY, TTS_COMMAND or macOS say (see tts.mjs), NARRATION=0 (force silent).
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"

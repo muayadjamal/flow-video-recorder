@@ -18,7 +18,7 @@
 // Export `narration` and every step becomes say() … work … hold(). The clips are
 // synthesized and measured before the browser opens, so hold() knows exactly how
 // long to keep the step on screen: the picture waits for the voice, never the
-// other way round. Without ELEVENLABS_API_KEY the same flow records silently.
+// other way round. Without any TTS configured the same flow records silently.
 //
 // Tips:
 //   - Prefer role/label locators: page.getByRole('button', { name: 'Save' }).

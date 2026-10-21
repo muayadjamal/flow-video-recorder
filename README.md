@@ -14,7 +14,7 @@ It works on two surfaces:
 | Cursor, ripple, captions | injected into the page | composited after capture |
 | Output | 2560x1440 MP4, supersampled | device-resolution MP4 |
 
-Narration comes from ElevenLabs. Without an API key the same flow records silently with captions.
+Narration can come from ElevenLabs, OpenAI, the macOS `say` command, or any local model you can call from a shell line (Piper, Kokoro, a TTS server). With no engine configured the same flow records silently with captions.
 
 ## See it working
 
@@ -58,7 +58,7 @@ git clone https://github.com/muayadjamal/flow-video-recorder ~/.claude/skills/fl
 - `node` 20 or newer and `ffmpeg` on the PATH.
 - Browser flows: `playwright` in the target project (`npm i -D playwright && npx playwright install chromium`).
 - iOS flows: macOS with Xcode, a booted simulator with your app installed, and [Maestro](https://maestro.mobile.dev) at `~/.maestro/bin/maestro`.
-- Narration: an `ELEVENLABS_API_KEY` in the environment or the project's `.env`. Optional.
+- Narration, optional: `ELEVENLABS_API_KEY` or `OPENAI_API_KEY` in the environment or the project's `.env`, or `TTS_COMMAND` for your own engine. On macOS `say` works with nothing set.
 
 ## Usage
 
@@ -88,6 +88,20 @@ export default async ({ page, say, hold, click, goto }) => {
 };
 ```
 
+Narration engine, picked automatically from the environment or forced with `TTS_PROVIDER`:
+
+| Provider | Needs |
+|---|---|
+| `elevenlabs` | `ELEVENLABS_API_KEY` |
+| `openai` | `OPENAI_API_KEY` |
+| `say` | macOS |
+| `command` | `TTS_COMMAND`, a shell line that reads `$TTS_TEXT` and writes `$TTS_OUT` |
+
+```bash
+TTS_COMMAND='piper --model en_US-lessac-medium.onnx --output_file "$TTS_OUT" <<< "$TTS_TEXT"' \
+  bash <skill>/assets/record.sh flow.mjs demo.mp4
+```
+
 After every run the recorder prints a table of spoken length against on-screen length per step, and flags silence and lines that kept talking after the screen changed.
 
 ## How it works
@@ -107,7 +121,7 @@ The full method, every environment knob, and the gotchas are in [SKILL.md](SKILL
 | `SKILL.md` | The instructions the agent follows |
 | `assets/record.sh`, `assets/recorder.mjs` | Browser entry point and Playwright driver |
 | `assets/record-ios.sh`, `assets/ios-recorder.mjs`, `assets/ios-compose.mjs` | iOS entry point, Maestro driver, overlay compositor |
-| `assets/tts.mjs`, `assets/mux.mjs` | ElevenLabs synthesis with caching, audio muxing |
+| `assets/tts.mjs`, `assets/mux.mjs` | Narration through ElevenLabs, OpenAI, macOS say or a custom command, with caching; audio muxing |
 | `assets/motion.mjs`, `assets/assemble.mjs`, `assets/kit.js`, `assets/preview.mjs` | Motion-graphics renderer, assembler, scene helpers, preview |
 | `assets/*.example.*` | A browser flow, an iOS flow, two scenes and a plan to copy from |
 | `assets/ios-calibrate.mjs` | Measures capture clock drift on a simulator |
