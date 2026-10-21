@@ -6,10 +6,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+        with:
+          node-version: 22
       - name: skills CLI discovers the skill
-        run: npx --yes skills add . --list | grep -q flow-video-recorder
+        run: |
+          npx --yes skills add . --list | grep -q flow-video-recorder
       - name: frontmatter name matches
-        run: grep -q '^name: flow-video-recorder$' SKILL.md
+        run: |
+          grep -q '^name: flow-video-recorder$' SKILL.md
       - name: JSON manifests parse
-        run: for f in .claude-plugin/*.json assets/*.json; do node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))"; done
+        run: |
+          for f in .claude-plugin/*.json assets/*.json; do
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))"
+          done
