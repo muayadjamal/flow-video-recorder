@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>Flow Video Recorder</title>
+  <g transform="translate(22 14)">
+    <path d="M108 108 L108 206 L132 182 L150 220 L170 210 L152 172 L186 172 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M160 68 A64 64 0 1 0 68 160" fill="none" stroke="#FF5A3C" stroke-width="15" stroke-linecap="round"/>
+    <path d="M186 48 A96 96 0 1 0 48 186" fill="none" stroke="#FF5A3C" stroke-width="15" stroke-linecap="round"/>
+  </g>
+</svg>
