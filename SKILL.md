@@ -550,7 +550,7 @@ first time, copies the recording in, builds the props from the timeline with
 the subtitles, size, length), renders, and prints the path. Narration comes
 through untouched since the audio travels with the input video. Knobs:
 `FRAME_TITLE`, `FRAME_URL`, `FRAME_CHROME=0`, `FRAME_ACCENT` (badge colour,
-default blue), `FRAME_PAD` (inset as a fraction of height, `0.06`),
+default blue), `FRAME_PAD` (side margin as a fraction of the width, `0.083`; the frame fills the rest),
 `FRAME_RADIUS` (`14`), `FRAME_BG` (any CSS background; default a deep blue
 gradient), `SUB_MAX_CHARS`, `CRF`.
 

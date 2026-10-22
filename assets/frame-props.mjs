@@ -71,7 +71,7 @@ fs.writeFileSync(out, JSON.stringify({
     urls: rewriteUrls((tl.urls || []).map((u) => ({ ...u, tMs: Math.max(0, shift(u.tMs)) }))),
     subtitles,
     durationInFrames: Math.round(Number(durationS) * 30),
-    pad: Number(process.env.FRAME_PAD || 0.06),
+    pad: Number(process.env.FRAME_PAD || 0.083),
     radius: Number(process.env.FRAME_RADIUS || 14),
     background: process.env.FRAME_BG || 'radial-gradient(120% 120% at 20% 10%, #0b3a8a 0%, #072a66 45%, #04173d 100%)',
     accent: process.env.FRAME_ACCENT || '#2563eb',

@@ -6,7 +6,7 @@
 # Requires: node, and the frame/ directory next to this script (copied with the
 #           assets). Installs Remotion into frame/node_modules on first run,
 #           which downloads a headless Chrome; budget a few minutes and ~500 MB.
-# Env: FRAME_PAD (inset as a fraction of height, default 0.06), FRAME_RADIUS (14),
+# Env: FRAME_PAD (side margin as a fraction of the width, default 0.083), FRAME_RADIUS (14),
 #      FRAME_BG (CSS background, default a deep blue gradient), FRAME_ACCENT
 #      (step badge colour), FRAME_TITLE (label at the top right, e.g. the app
 #      name), FRAME_URL (what the browser chrome shows instead of the recorded

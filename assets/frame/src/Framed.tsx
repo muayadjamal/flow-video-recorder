@@ -45,8 +45,8 @@ const Header: React.FC<{ frame: number; fps: number; captions: Caption[]; x: num
     if (idx < 0) return null;
     const since = frame - Math.round((captions[idx].tMs / 1000) * fps);
     const enter = spring({ frame: since, fps, config: { damping: 24, stiffness: 120 }, durationInFrames: Math.round(fps * 0.5) });
-    const fs = Math.round(h * 0.56);
-    const badge = Math.round(h * 0.68);
+    const fs = Math.round(h * 0.5);
+    const badge = Math.round(h * 0.62);
     return (
       <div style={{ position: 'absolute', left: x, top: y, width, height: h, display: 'flex', alignItems: 'center', gap: Math.round(h * 0.3), fontFamily: FONT, color: '#F5F6FA' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: Math.round(h * 0.3), opacity: enter, transform: `translateY(${(1 - enter) * h * 0.3}px)` }}>
@@ -102,21 +102,27 @@ const Subtitles: React.FC<{ frame: number; fps: number; subtitles: Subtitle[]; w
 export const Framed: React.FC<FramedProps> = ({ src, videoW, videoH, zooms, captions, urls, subtitles, pad, radius, background, accent, title, chrome }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const inset = Math.round(height * pad);
-  const headerH = captions.length ? Math.round(height * 0.055) : 0;
-  const gap = captions.length ? Math.round(height * 0.02) : 0;
+  // Geometry: the frame takes the width minus a side margin (`pad`, fraction of
+  // the width), the header sits close to the top, and whatever is left is the
+  // bottom margin. A video taller than 16:9 is shrunk to fit instead.
+  const side = Math.round(width * pad);
+  const topPad = Math.round(height * 0.025);
+  const headerH = captions.length ? Math.round(height * 0.045) : 0;
+  const gap = captions.length ? Math.round(height * 0.012) : 0;
   const chromeH = chrome ? Math.round(height * 0.04) : 0;
-  const availH = height - inset * 2 - headerH - gap;
-  const innerW = Math.min(width - inset * 2, Math.round((availH - chromeH) * (videoW / videoH)));
-  const picH = Math.round(innerW * (videoH / videoW));
+  const bottomMin = Math.round(height * 0.03);
+  let innerW = width - side * 2;
+  let picH = Math.round(innerW * (videoH / videoW));
+  const maxPic = height - topPad - headerH - gap - chromeH - bottomMin;
+  if (picH > maxPic) { picH = maxPic; innerW = Math.round(picH * (videoW / videoH)); }
   const left = Math.round((width - innerW) / 2);
-  const top = inset + headerH + gap;
+  const top = topPad + headerH + gap;
   const cam = camera(frame, fps, zooms, videoW, videoH);
   const fit = innerW / videoW;
 
   return (
     <AbsoluteFill style={{ background }}>
-      {captions.length ? <Header frame={frame} fps={fps} captions={captions} x={left} y={inset} h={headerH} width={innerW} accent={accent} title={title} /> : null}
+      {captions.length ? <Header frame={frame} fps={fps} captions={captions} x={left} y={topPad} h={headerH} width={innerW} accent={accent} title={title} /> : null}
       <div style={{ position: 'absolute', left, top, width: innerW, height: chromeH + picH, borderRadius: radius, overflow: 'hidden', background: '#000',
         boxShadow: '0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08)' }}>
         {chrome ? <Chrome frame={frame} fps={fps} urls={urls} h={chromeH} width={innerW} /> : null}
