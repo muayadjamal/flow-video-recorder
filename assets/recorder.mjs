@@ -148,7 +148,7 @@ const page = await context.newPage();
 // Every main-frame navigation, with its time: the frame step shows the URL in
 // a browser chrome above the picture.
 const urls = [];
-page.on('framenavigated', (f) => { if (f === page.mainFrame()) urls.push({ tMs: since(), url: f.url() }); });
+page.on('framenavigated', (f) => { if (f === page.mainFrame()) urls.push({ tMs: since(), url: f.url().replace(/[?#].*$/, '') }); });
 const video = page.video();
 
 // The screencast starts with the page, so this is the flow clock's zero — the

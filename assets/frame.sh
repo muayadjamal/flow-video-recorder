@@ -11,7 +11,9 @@
 #      (step badge colour), FRAME_TITLE (label at the top right, e.g. the app
 #      name), FRAME_URL (what the browser chrome shows instead of the recorded
 #      URLs, e.g. the production domain when recording against localhost),
-#      FRAME_CHROME=0 (no browser chrome), SUB_MAX_CHARS (44), CRF (16).
+#      FRAME_CHROME=0 (no browser chrome), FRAME_URL_QUERY=1 (keep query strings
+#      in the bar; off by default because that is where tokens live),
+#      SUB_MAX_CHARS (44), CRF (16).
 #      Run record.sh with FRAME=1 CAPTIONS=0 first: the step header replaces
 #      the in-page caption pill, and the spoken-word subtitles come from the
 #      narration clips.

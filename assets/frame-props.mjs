@@ -15,15 +15,27 @@ const shift = (ms) => ms - trim;
 
 const MAX_CHARS = Number(process.env.SUB_MAX_CHARS || 44);
 
+// The bar shows host and path only. Query strings and fragments are where
+// tokens, codes and signatures live, and a video is forever; FRAME_URL_QUERY=1
+// keeps them, with the usual secret names blanked.
+const SECRET = /^(code|token|state|key|api_?key|sig|signature|password|pass|secret|access_token|refresh_token|id_token|auth|session|otp)$/i;
+function clean(raw) {
+    let u; try { u = new URL(raw); } catch { return raw.replace(/[?#].*$/, ''); }
+    if (process.env.FRAME_URL_QUERY !== '1') return u.origin + u.pathname;
+    for (const k of [...u.searchParams.keys()]) if (SECRET.test(k)) u.searchParams.set(k, '…');
+    u.hash = '';
+    return u.toString();
+}
 // FRAME_URL: an origin ("https://app.example.com") swaps the host and keeps each
 // recorded path; a full URL with a path pins the bar to that one address.
 function rewriteUrls(urls) {
+    const cleaned = urls.map((u) => ({ ...u, url: clean(u.url) }));
     const override = process.env.FRAME_URL;
-    if (!override) return urls;
+    if (!override) return cleaned;
     let o; try { o = new URL(override); } catch { return [{ tMs: 0, url: override }]; }
-    if (o.pathname !== '/' || o.search) return [{ tMs: 0, url: override }];
-    if (!urls.length) return [{ tMs: 0, url: override }];
-    return urls.map((u) => { try { const p = new URL(u.url); return { ...u, url: o.origin + p.pathname + p.search }; } catch { return { ...u, url: override }; } });
+    if (o.pathname !== '/' || o.search) return [{ tMs: 0, url: clean(override) }];
+    if (!cleaned.length) return [{ tMs: 0, url: o.origin }];
+    return cleaned.map((u) => { try { const p = new URL(u.url); return { ...u, url: o.origin + p.pathname + p.search }; } catch { return { ...u, url: o.origin }; } });
 }
 const subtitles = [];
 const segments = (tl.segments || []).filter((s) => s.clip && s.text && s.durMs > 0);

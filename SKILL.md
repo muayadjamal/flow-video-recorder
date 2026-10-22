@@ -516,8 +516,11 @@ FRAME_TITLE="Lumen Goods" FRAME_URL="https://app.lumengoods.com" \
   moment, host in bold, path in grey. Recording against `localhost` shows
   `localhost`, which is not what a product demo should say, so set
   `FRAME_URL` to the real domain (the path is kept from the recording when
-  you give only an origin, or pass a full URL to pin it). `FRAME_CHROME=0`
-  drops the bar.
+  you give only an origin, or pass a full URL to pin it). The bar shows host
+  and path only: query strings and fragments are dropped at record time,
+  because that is where tokens, codes and signatures live and a video is
+  forever. `FRAME_URL_QUERY=1` keeps them, with the usual secret parameter
+  names blanked. `FRAME_CHROME=0` drops the bar.
 - Subtitles: the phrase being spoken, in a dark box at the bottom of the
   picture, cut into lines of about 44 characters (`SUB_MAX_CHARS`). They
   come from the narration clips, word-aligned with ElevenLabs when a key is
