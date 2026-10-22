@@ -7,7 +7,10 @@
 #           assets). Installs Remotion into frame/node_modules on first run,
 #           which downloads a headless Chrome; budget a few minutes and ~500 MB.
 # Env: FRAME_PAD (inset as a fraction of height, default 0.06), FRAME_RADIUS (18),
-#      FRAME_BG (CSS background, default a dark gradient), CRF (16).
+#      FRAME_BG (CSS background, default a dark gradient), FRAME_ACCENT (step
+#      badge colour), FRAME_TITLE (small label at the top right, e.g. the app
+#      name), CRF (16). Run record.sh with FRAME=1 CAPTIONS=0 first: the step
+#      header here replaces the in-page caption pill.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -31,8 +34,11 @@ fs.writeFileSync(process.argv[3], JSON.stringify({
   src: "input.mp4",
   videoW: tl.width || 1920, videoH: tl.height || 1080,
   zooms: (tl.zooms || []).map((z) => ({ ...z, tMs: z.tMs - trim })).filter((z) => z.tMs > 0),
+  captions: (tl.captions || []).map((c) => ({ ...c, tMs: Math.max(0, c.tMs - trim) })),
   durationInFrames: Math.round(dur * 30),
   pad: Number(process.env.FRAME_PAD || 0.06),
+  accent: process.env.FRAME_ACCENT || "#FF5A3C",
+  title: process.env.FRAME_TITLE || "",
   radius: Number(process.env.FRAME_RADIUS || 18),
   background: process.env.FRAME_BG || "linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #312e81 100%)",
 }));

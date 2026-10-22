@@ -11,7 +11,7 @@ export const RemotionRoot: React.FC = () => (
     height={1080}
     fps={30}
     durationInFrames={300}
-    defaultProps={{ src: 'input.mp4', videoW: 1920, videoH: 1080, zooms: [], durationInFrames: 300, pad: 0.06, radius: 18, background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #312e81 100%)' } as FramedProps}
+    defaultProps={{ src: 'input.mp4', videoW: 1920, videoH: 1080, zooms: [], captions: [], durationInFrames: 300, pad: 0.06, radius: 18, accent: '#FF5A3C', title: '', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #312e81 100%)' } as FramedProps}
     calculateMetadata={({ props }) => ({ durationInFrames: props.durationInFrames, width: props.videoW, height: props.videoH })}
   />
 );

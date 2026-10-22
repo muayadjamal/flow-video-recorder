@@ -69,7 +69,7 @@ cost of a heavier install:
 | Subtitles | The caption pill naming each step on screen | `CAPTIONS` |
 | Pointer | A cursor that glides between targets, and a ripple on each tap | `POINTER` |
 | Motion graphics | Short animated explainer scenes spliced between the recorded steps, with an animated transition at each join, synced word by word to the voice, for a pipeline, a data flow or a concept the screen cannot show | a `motion.plan.json`, see [Motion graphics](#motion-graphics) |
-| Zoom and frame | Browser only. The camera pushes in on the clicks that matter, with a spring ease, and the recording sits inside a framed canvas with a background, rounded corners and a shadow. Rendered by Remotion as an extra step, so it installs about 500 MB on first use | `click(…, { zoom })` in the flow, then `frame.sh`, see [Zoom and frame](#zoom-and-frame) |
+| Zoom and frame | Browser only. The recording sits inside a framed canvas with a background, rounded corners and a shadow; the captions become a step header above it (number, title, app name, progress rail); and the camera drifts in on the one or two clicks that matter. Rendered by Remotion as an extra step, so it installs about 500 MB on first use | `FRAME=1 CAPTIONS=0` on `record.sh`, `click(…, { zoom })` in the flow, then `frame.sh`, see [Zoom and frame](#zoom-and-frame) |
 
 Pass `=0` for whatever they leave out, to either entry point:
 
@@ -88,9 +88,10 @@ The answer changes what you write, not just what gets rendered:
 - **No pointer** means taps are invisible. Let each one land on a control whose
   own pressed or focused state shows the tap happened, or the video becomes a
   screen changing for no visible reason.
-- **Zoom and frame** means two more things to write and run: `{ zoom: true }`
-  on the clicks that carry the step, and `frame.sh` after `record.sh`. The
-  framed file is the deliverable, not `record.sh`'s output.
+- **Zoom and frame** means the captions are drawn by the frame step, not the
+  page, so record with `FRAME=1 CAPTIONS=0`; `{ zoom: true }` goes on the one
+  or two clicks that carry the video; and `frame.sh` runs after `record.sh`.
+  The framed file is the deliverable, not `record.sh`'s output.
 - **Motion graphics** means the recording is only the raw material. You also
   write one HTML scene per idea and a plan that says where each one goes, and
   the deliverable is the assembled video, not `record.sh`'s output. Only reach
@@ -181,7 +182,8 @@ voice-over on if there is one.
 - `WIDTH`/`HEIGHT`: output resolution, set from the [resolution question](#then-ask-for-the-resolution) (default `2560`/`1440`).
 - `SCALE`: `deviceScaleFactor` (default `2`). This supersamples: the page renders at 2× then scales down, so text stays crisp. The single biggest quality lever.
 - `SLOWMO`: ms added to every Playwright action (default `55`) for smooth pacing.
-- `ZOOM_SCALE` / `ZOOM_HOLD_MS`: defaults for `zoom()` and `click(…, { zoom: true })` (`1.6`, `1500`). Only rendered by `frame.sh`.
+- `ZOOM_SCALE` / `ZOOM_HOLD_MS`: defaults for `zoom()` and `click(…, { zoom: true })` (`1.35`, `1800`). Only rendered by `frame.sh`.
+- `FRAME=1`: keep the timeline (captions, zoom marks) for `frame.sh` even when the flow has no narration.
 
 ## Browser flow patterns
 
@@ -484,42 +486,54 @@ anything that has to land on a syllable.
 
 # Zoom and frame
 
-Browser flows only. The recording stays as it is; a second render pushes the
-camera in on the moments the flow marked and places the picture inside a
-framed canvas. It is what makes a demo look like a product page instead of a
-screen capture, and it is opt-in because it costs the user a Remotion install:
-React, Remotion and a headless Chrome, about 500 MB, a few minutes the first
-time, and renders at roughly two to three times real time.
+Browser flows only. The recording stays as it is; a second render places it
+inside a framed canvas, draws the captions as a step header above the
+picture, and drifts the camera in on the moments the flow marked. It is what
+makes a demo look like a product page instead of a screen capture, and it is
+opt-in because it costs the user a Remotion install: React, Remotion and a
+headless Chrome, about 500 MB, a few minutes the first time, and renders at
+roughly two to three times real time.
 
-Mark the moments in the flow. A push-in belongs on the click the step is
-about, the one the narration names, and nowhere else. A zoom on every click
-is a video that never sits still.
-
-```js
-await click(page.getByRole('button', { name: 'Approve' }), { zoom: true });   // 1.6× by default
-await click('#pay', { zoom: 1.8 });                                            // tighter
-await zoom(page.locator('table'), { scale: 1.35, ms: 1600 });                 // look at an area, no click
-```
-
-The push-in starts 450 ms before the click so it lands as the button is
-pressed, holds for `ZOOM_HOLD_MS`, then relaxes. The centre is clamped to the
-picture, so a target near an edge never shows empty canvas. Keep zooms under
-about 1.8×: the caption pill sits at the bottom of the capture and zooms with
-it, and a tight push-in on something high on the page moves the pill out of
-frame.
-
-Then render, after `record.sh` has written the video and its timeline:
+**Record with the frame in mind.** `FRAME=1` makes the recorder keep a
+timeline even for a silent flow, with every caption and its time in it.
+`CAPTIONS=0` keeps the page's own pill off, because the header replaces it:
 
 ```bash
+FRAME=1 CAPTIONS=0 bash <skill>/assets/record.sh flow.mjs demo.mp4
 bash <skill>/assets/frame.sh demo.mp4 demo.timeline.json demo.framed.mp4
 ```
 
-`frame.sh` installs Remotion into `frame/node_modules` the first time, copies
-the recording in, builds the props from the timeline (zoom marks shifted by
-the head trim, size, length), renders, and prints the path. Narration comes
-through untouched since the audio travels with the input video. Knobs:
-`FRAME_PAD` (inset as a fraction of height, `0.06`), `FRAME_RADIUS` (`18`),
-`FRAME_BG` (any CSS background; default a dark blue-to-violet gradient), `CRF`.
+**The header.** A numbered badge in the accent colour, the caption text as
+the step title, the app name at the right (`FRAME_TITLE`, set it to the
+product or screen name), and a progress rail with one segment per step. Each
+step slides in when its caption starts. Captions are therefore titles, three
+or four words: "Approve the order", not a sentence.
+
+**Mark the moments.** A push-in belongs on the click the step is about, the
+one the narration names, and on at most one or two clicks in a short video.
+A camera that moves on every click is a video that never sits still, and a
+viewer who cannot settle stops reading the screen.
+
+```js
+await click(page.getByRole('button', { name: 'Approve' }), { zoom: true });   // 1.35× by default
+await click('#pay', { zoom: 1.5 });                                            // the most it should ever be
+await zoom(page.locator('table'), { scale: 1.25, ms: 1600 });                 // look at an area, no click
+```
+
+The drift starts 500 ms before the click so it lands as the button is
+pressed, holds for `ZOOM_HOLD_MS` (1.8 s), then relaxes over a second. Both
+springs are slow and heavily damped on purpose; do not make them snappier.
+The centre is clamped to the picture, so a target near an edge never shows
+empty canvas. Stay at or under 1.5×; the point is to lean in, not to crop.
+
+**What `frame.sh` does.** Installs Remotion into `frame/node_modules` the
+first time, copies the recording in, builds the props from the timeline
+(captions and zoom marks shifted by the head trim, size, length), renders,
+and prints the path. Narration comes through untouched since the audio
+travels with the input video. Knobs: `FRAME_TITLE`, `FRAME_ACCENT` (badge and
+rail colour, default coral), `FRAME_PAD` (inset as a fraction of height,
+`0.06`), `FRAME_RADIUS` (`18`), `FRAME_BG` (any CSS background; default a
+dark blue-to-violet gradient), `CRF`.
 
 Two things to tell the user before the install: the size, and the licence.
 Remotion is free for individuals and for companies of up to three people;
