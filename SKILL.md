@@ -2,7 +2,7 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either
@@ -39,7 +39,7 @@ as it happens. It records two surfaces:
 
 ## Quality: always the best, unless told otherwise
 
-Every recording uses the best quality available unless the user asks otherwise. That means the ElevenLabs `eleven_v4` model for narration when ElevenLabs is the engine (also when clips come through the ElevenLabs connector: pass `model_id: eleven_v4`), a 2560×1440 master at `CRF=16` for browser flows, and `CRF=16` for iOS. These are now the defaults in the assets; only lower them when the user asks for a smaller or faster file.
+Every recording uses the best quality available unless the user asks otherwise. That means the ElevenLabs `eleven_v4` model for narration when ElevenLabs is the engine (also when clips come through the ElevenLabs connector: pass `model_id: eleven_v4`), a 2560×1440 master at `CRF=16` for browser flows, and `CRF=16` for iOS. These are the defaults in the assets; the resolution question below is where the user lowers or raises them.
 
 ## The one decision worth understanding first
 
@@ -97,6 +97,30 @@ Ask once, at the start. Re-rendering with different overlays is cheap, since the
 capture and the timeline do not change and narration clips are cached, but
 rewriting a flow around a different answer is not.
 
+## Then ask for the resolution
+
+In the same `AskUserQuestion` call, add a second question, single choice, with
+2K marked as the recommended default. Put the choice straight into the
+environment of the entry point:
+
+| Option | Browser (`WIDTH`/`HEIGHT`) | iOS (`OUT_W`, height follows the device) | Use it for |
+|---|---|---|---|
+| 720p | `1280`/`720` | `720` | Quick previews, chat attachments, draft passes |
+| 1080p | `1920`/`1080` | `1080` | Most sharing: Slack, email, LinkedIn, docs |
+| 2K (recommended) | `2560`/`1440` | `1440` | The master copy. YouTube, course pages, anything you will keep |
+| 4K | `3840`/`2160` | `2160` | Large screens, downscaling in an editor later |
+
+```bash
+WIDTH=1920 HEIGHT=1080 bash <skill>/assets/record.sh flow.mjs demo.mp4
+OUT_W=1440 bash <skill>/assets/record-ios.sh flow.mjs demo.mp4
+```
+
+Resolution has no effect on the flow you write, only on the render, so a
+recording made at one size can be remade at another from the same flow. On
+iOS the capture is the device's own pixels, so `OUT_W` above the device width
+only upscales; say so if they pick 4K for a phone. Browser flows render at 2×
+(`SCALE`) regardless, which is what keeps text crisp at every size.
+
 ---
 
 # Browser flows
@@ -148,7 +172,7 @@ voice-over on if there is one.
 ## Browser knobs
 
 - `POINTER=0`: no cursor and no click ripple. `CAPTIONS=0`: no caption pill. Both are injected into the page, so turning them off leaves nothing behind.
-- `WIDTH`/`HEIGHT`: output resolution (default `2560`/`1440`, the best-quality master). `1920`/`1080` only when a smaller file is wanted.
+- `WIDTH`/`HEIGHT`: output resolution, set from the [resolution question](#then-ask-for-the-resolution) (default `2560`/`1440`).
 - `SCALE`: `deviceScaleFactor` (default `2`). This supersamples: the page renders at 2× then scales down, so text stays crisp. The single biggest quality lever.
 - `SLOWMO`: ms added to every Playwright action (default `55`) for smooth pacing.
 
@@ -340,7 +364,7 @@ answered on screen.
 ## iOS knobs
 
 - `UDID`: which simulator (default: the booted one). `BUNDLE_ID` overrides the flow's `appId`.
-- `OUT_W`: output width (default `1080`); the height follows the device's aspect ratio.
+- `OUT_W`: output width, set from the [resolution question](#then-ask-for-the-resolution) (default `1080`); the height follows the device's aspect ratio.
 - `TAIL_MS`: how much video to keep after the last spoken word (default `1200`). Whatever the driver was still doing after the narration ended is dead air, and dead air at the end is the part viewers notice.
 - `SCALE`: points→pixels, normally detected. Set it if a ripple lands in the wrong place.
 - `MAESTRO`: path to the binary, if it is not at `~/.maestro/bin/maestro`.

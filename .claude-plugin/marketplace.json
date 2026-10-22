@@ -10,7 +10,7 @@
       "name": "flow-video-recorder",
       "source": "./",
       "description": "Record a narrated, captioned demo video of a flow through a web or native iOS app.",
-      "version": "1.2.0"
+      "version": "1.3.0"
     }
   ],
   "description": "Skill that records narrated, captioned demo videos of web and native iOS apps."
