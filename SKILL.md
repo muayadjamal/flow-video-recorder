@@ -2,7 +2,7 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.4.0"
+  version: "1.5.0"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either
@@ -69,7 +69,7 @@ cost of a heavier install:
 | Subtitles | The caption pill naming each step on screen | `CAPTIONS` |
 | Pointer | A cursor that glides between targets, and a ripple on each tap | `POINTER` |
 | Motion graphics | Short animated explainer scenes spliced between the recorded steps, with an animated transition at each join, synced word by word to the voice, for a pipeline, a data flow or a concept the screen cannot show | a `motion.plan.json`, see [Motion graphics](#motion-graphics) |
-| Zoom and frame | Browser only. The recording sits inside a framed canvas with a background, rounded corners and a shadow; the captions become a step header above it (number, title, app name, progress rail); and the camera drifts in on the one or two clicks that matter. Rendered by Remotion as an extra step, so it installs about 500 MB on first use | `FRAME=1 CAPTIONS=0` on `record.sh`, `click(…, { zoom })` in the flow, then `frame.sh`, see [Zoom and frame](#zoom-and-frame) |
+| Frame | Browser only. The recording sits inside a browser chrome (traffic lights, the live URL) on a framed canvas; the captions become a numbered step header above it; the narration appears as spoken-word subtitles at the bottom; and the camera can drift in on a detail the voice points at. Rendered by Remotion as an extra step, so it installs about 500 MB on first use | `FRAME=1 CAPTIONS=0` on `record.sh`, then `frame.sh`, see [Frame](#frame) |
 
 Pass `=0` for whatever they leave out, to either entry point:
 
@@ -88,10 +88,9 @@ The answer changes what you write, not just what gets rendered:
 - **No pointer** means taps are invisible. Let each one land on a control whose
   own pressed or focused state shows the tap happened, or the video becomes a
   screen changing for no visible reason.
-- **Zoom and frame** means the captions are drawn by the frame step, not the
-  page, so record with `FRAME=1 CAPTIONS=0`; `{ zoom: true }` goes on the one
-  or two clicks that carry the video; and `frame.sh` runs after `record.sh`.
-  The framed file is the deliverable, not `record.sh`'s output.
+- **Frame** means the captions and subtitles are drawn by the frame step, not
+  the page, so record with `FRAME=1 CAPTIONS=0`, and `frame.sh` runs after
+  `record.sh`. The framed file is the deliverable, not `record.sh`'s output.
 - **Motion graphics** means the recording is only the raw material. You also
   write one HTML scene per idea and a plan that says where each one goes, and
   the deliverable is the assembled video, not `record.sh`'s output. Only reach
@@ -145,8 +144,8 @@ voice-over on if there is one.
    ```
 2. **Copy the assets** into the project (e.g. a `scripts/` folder):
    `recorder.mjs`, `record.sh`, `tts.mjs`, `mux.mjs`, and `flow.example.mjs`
-   from this skill's `assets/`; with zoom and frame ticked, also `frame.sh`
-   and the whole `frame/` directory; with motion graphics ticked, also `motion.mjs`,
+   from this skill's `assets/`; with the frame ticked, also `frame.sh`,
+   `frame-props.mjs` and the whole `frame/` directory; with motion graphics ticked, also `motion.mjs`,
    `assemble.mjs`, `kit.js`, `preview.mjs`, the two `scene*.example.html`
    files and `motion.plan.example.json` (`kit.js` next to the scenes).
    `tts.mjs` must sit next to the flow file, since the recorder imports it from
@@ -484,56 +483,87 @@ anything that has to land on a syllable.
 
 ---
 
-# Zoom and frame
+# Frame
 
 Browser flows only. The recording stays as it is; a second render places it
-inside a framed canvas, draws the captions as a step header above the
-picture, and drifts the camera in on the moments the flow marked. It is what
-makes a demo look like a product page instead of a screen capture, and it is
-opt-in because it costs the user a Remotion install: React, Remotion and a
-headless Chrome, about 500 MB, a few minutes the first time, and renders at
-roughly two to three times real time.
+inside a browser chrome on a framed canvas, draws the captions as a step
+header above the picture, lays the narration under it as subtitles that
+follow the voice, and can drift the camera in on a detail. It is what makes a
+demo look like a product page instead of a screen capture, and it is opt-in
+because it costs the user a Remotion install: React, Remotion and a headless
+Chrome, about 500 MB, a few minutes the first time, and renders at roughly
+two to three times real time.
 
 **Record with the frame in mind.** `FRAME=1` makes the recorder keep a
-timeline even for a silent flow, with every caption and its time in it.
-`CAPTIONS=0` keeps the page's own pill off, because the header replaces it:
+timeline even for a silent flow, with every caption, every navigation and
+the text of every spoken line in it. `CAPTIONS=0` keeps the page's own pill
+off, because the header replaces it:
 
 ```bash
 FRAME=1 CAPTIONS=0 bash <skill>/assets/record.sh flow.mjs demo.mp4
-bash <skill>/assets/frame.sh demo.mp4 demo.timeline.json demo.framed.mp4
+FRAME_TITLE="Lumen Goods" FRAME_URL="https://app.lumengoods.com" \
+  bash <skill>/assets/frame.sh demo.mp4 demo.timeline.json demo.framed.mp4
 ```
 
-**The header.** A numbered badge in the accent colour, the caption text as
-the step title, the app name at the right (`FRAME_TITLE`, set it to the
-product or screen name), and a progress rail with one segment per step. Each
-step slides in when its caption starts. Captions are therefore titles, three
-or four words: "Approve the order", not a sentence.
+**What the viewer sees.**
 
-**Mark the moments.** A push-in belongs on the click the step is about, the
-one the narration names, and on at most one or two clicks in a short video.
-A camera that moves on every click is a video that never sits still, and a
-viewer who cannot settle stops reading the screen.
+- A step header: a small numbered badge (`01`, `02`), the caption as the
+  step title, the app name at the right (`FRAME_TITLE`) and a progress rail
+  with one segment per step. Each step slides in when its caption starts.
+  Captions are therefore titles, three or four words: "Approve the order",
+  not a sentence.
+- A browser chrome: traffic lights and the URL the page was on at that
+  moment, host in bold, path in grey. Recording against `localhost` shows
+  `localhost`, which is not what a product demo should say, so set
+  `FRAME_URL` to the real domain (the path is kept from the recording when
+  you give only an origin, or pass a full URL to pin it). The bar shows host
+  and path only: query strings and fragments are dropped at record time,
+  because that is where tokens, codes and signatures live and a video is
+  forever. `FRAME_URL_QUERY=1` keeps them, with the usual secret parameter
+  names blanked. `FRAME_CHROME=0` drops the bar.
+- Subtitles: the phrase being spoken, in a dark box at the bottom of the
+  picture, cut into lines of about 44 characters (`SUB_MAX_CHARS`). They
+  come from the narration clips, word-aligned with ElevenLabs when a key is
+  in the environment (free, cached beside the clip) and estimated from text
+  length otherwise. A silent flow has none.
+
+**Zoom, rarely.** The ripple already shows every click, so a click is never
+a reason to zoom. A drift earns its place only when the voice points at
+something the viewer cannot read at full size: a value in a small field, a
+toggle in a dense settings page, a badge. In a one-minute video that is one
+moment, perhaps two, and most videos have none.
 
 ```js
-await click(page.getByRole('button', { name: 'Approve' }), { zoom: true });   // 1.35× by default
-await click('#pay', { zoom: 1.5 });                                            // the most it should ever be
-await zoom(page.locator('table'), { scale: 1.25, ms: 1600 });                 // look at an area, no click
+await zoom(page.locator('input.qty').nth(1), { scale: 1.3, ms: 2200 });   // lean in on the one small thing
+await click('#pay', { zoom: 1.4 });                                       // only if the click target itself is the small thing
 ```
 
-The drift starts 500 ms before the click so it lands as the button is
-pressed, holds for `ZOOM_HOLD_MS` (1.8 s), then relaxes over a second. Both
-springs are slow and heavily damped on purpose; do not make them snappier.
-The centre is clamped to the picture, so a target near an edge never shows
-empty canvas. Stay at or under 1.5×; the point is to lean in, not to crop.
+The drift starts 500 ms before its moment, holds for `ms` (default
+`ZOOM_HOLD_MS`, 1.8 s), then relaxes over a second. Both springs are slow and
+heavily damped on purpose; do not make them snappier. The camera moves the
+whole browser window, chrome included, so it grows out over the canvas
+margins like a window being pulled closer; the centre is clamped so the
+window always covers its resting place. Subtitles and the header stay put.
+Stay between 1.25× and 1.5×: the point is to lean in, not to crop.
 
 **What `frame.sh` does.** Installs Remotion into `frame/node_modules` the
-first time, copies the recording in, builds the props from the timeline
-(captions and zoom marks shifted by the head trim, size, length), renders,
-and prints the path. Narration comes through untouched since the audio
-travels with the input video. Knobs: `FRAME_TITLE`, `FRAME_ACCENT` (badge and
-rail colour, default coral), `FRAME_PAD` (inset as a fraction of height,
-`0.06`), `FRAME_RADIUS` (`18`), `FRAME_BG` (any CSS background; default a
-dark blue-to-violet gradient), `CRF`.
+first time, copies the recording in, builds the props from the timeline with
+`frame-props.mjs` (captions, URLs and zoom marks shifted by the head trim,
+the subtitles, size, length), renders, and prints the path. Narration comes
+through untouched since the audio travels with the input video. Knobs:
+`FRAME_TITLE`, `FRAME_URL`, `FRAME_CHROME=0`, `FRAME_ACCENT` (badge colour),
+`FRAME_PAD` (side margin as a fraction of the width, `0.083`; the frame fills the rest),
+`FRAME_RADIUS` (`14`), `FRAME_BG` (any CSS background), `SUB_MAX_CHARS`, `CRF`.
+
+**The canvas takes the app's colours.** While recording, the recorder samples
+the page's brand colour on every load (the most prominent saturated
+background among buttons, links, header and nav, else the `theme-color`
+meta) and stores it in the timeline. `frame.sh` uses it as the badge colour
+and builds the background as a dark gradient of the same hue, so the video
+looks like it belongs to the product without anyone picking colours. Only
+set `FRAME_ACCENT` or `FRAME_BG` when the user asks for something else or
+the sampled colour is wrong (say, a red "delete" button won); the render
+log prints which colour it used.
 
 Two things to tell the user before the install: the size, and the licence.
 Remotion is free for individuals and for companies of up to three people;
