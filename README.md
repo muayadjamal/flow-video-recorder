@@ -26,11 +26,11 @@ Narration can come from ElevenLabs, OpenAI, the macOS `say` command, or any loca
 
 ## See it working
 
-A two-minute overview of a school management platform, recorded with the frame step on, as it comes out of the box: browser chrome, numbered step header, subtitles that follow the voice, four short zooms that ride the cursor on the clicks that matter, a canvas in the app's own colour, and the product's own intro and outro cards on either end.
+A two-minute overview of a school management platform, made with every option on: browser chrome, a numbered step header, subtitles that follow the voice, four short zooms that ride the cursor on the clicks that matter, a canvas in the app's own colour, two motion-graphics scenes that explain what the screens cannot show, and the product's own intro and outro cards.
 
-https://github.com/user-attachments/assets/8c0bfdca-4ed3-43b0-978a-155650926c1c
+https://github.com/user-attachments/assets/0f77fdf1-53e0-43df-a161-af2c58e53971
 
-The full-quality file is [`examples/edumind-overview.mp4`](examples/edumind-overview.mp4). Every video on [edumind.school/course](https://edumind.school/course?lang=en) was made with this skill too: 20 walkthroughs of the same platform, about 41 minutes in total, in English and Arabic, covering both the web app and the native parent and teacher apps. Two that go deeper:
+Full quality: [download the MP4](https://github.com/muayadjamal/flow-video-recorder/releases/download/v1.5.0/edumind-overview.mp4). Every video on [edumind.school/course](https://edumind.school/course?lang=en) was made with this skill too: 20 walkthroughs of the same platform, about 41 minutes in total, in English and Arabic, covering both the web app and the native parent and teacher apps. Two that go deeper:
 
 - [The parent app](https://edumind.school/course/02-parent-app/en.mp4) (native iOS)
 - [Exams: from question bank to paper](https://edumind.school/course/11-exams/en.mp4) (web)
