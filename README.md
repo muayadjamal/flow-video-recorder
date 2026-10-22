@@ -13,8 +13,6 @@
 
 An agent skill that records a narrated demo video of your app. Tell Claude Code (or Codex, Cursor, any agent that reads `SKILL.md`) which flow to show, and it writes a script, drives the app, and hands back an MP4 with a moving cursor, a ripple on every click, a caption per step, and a voice that explains what is happening while it happens.
 
-https://github.com/user-attachments/assets/8c0bfdca-4ed3-43b0-978a-155650926c1c
-
 It works on two surfaces:
 
 | | Browser | Native iOS |
@@ -28,11 +26,12 @@ Narration can come from ElevenLabs, OpenAI, the macOS `say` command, or any loca
 
 ## See it working
 
-The video at the top of this page is a two-minute overview of a school management platform, recorded with the frame step on, as it comes out of the box: browser chrome, numbered step header, subtitles that follow the voice, four short zooms that ride the cursor on the clicks that matter, a canvas in the app's own colour, and the product's own intro and outro cards on either end. The full-quality file is [`examples/edumind-overview.mp4`](examples/edumind-overview.mp4).
+A two-minute overview of a school management platform, recorded with the frame step on, as it comes out of the box: browser chrome, numbered step header, subtitles that follow the voice, four short zooms that ride the cursor on the clicks that matter, a canvas in the app's own colour, and the product's own intro and outro cards on either end.
 
-Every video on [edumind.school/course](https://edumind.school/course?lang=en) was made with this skill: 20 walkthroughs of a school management platform, about 41 minutes in total, in English and Arabic, covering both the web app and the native parent and teacher apps. A few direct links:
+https://github.com/user-attachments/assets/8c0bfdca-4ed3-43b0-978a-155650926c1c
 
-- [Meet EduMind](https://edumind.school/course/01-overview/en.mp4) (web, with motion-graphics scenes)
+The full-quality file is [`examples/edumind-overview.mp4`](examples/edumind-overview.mp4). Every video on [edumind.school/course](https://edumind.school/course?lang=en) was made with this skill too: 20 walkthroughs of the same platform, about 41 minutes in total, in English and Arabic, covering both the web app and the native parent and teacher apps. Two that go deeper:
+
 - [The parent app](https://edumind.school/course/02-parent-app/en.mp4) (native iOS)
 - [Exams: from question bank to paper](https://edumind.school/course/11-exams/en.mp4) (web)
 
