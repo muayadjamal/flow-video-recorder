@@ -13,6 +13,10 @@
 
 An agent skill that records a narrated demo video of your app. Tell Claude Code (or Codex, Cursor, any agent that reads `SKILL.md`) which flow to show, and it writes a script, drives the app, and hands back an MP4 with a moving cursor, a ripple on every click, a caption per step, and a voice that explains what is happening while it happens.
 
+<p align="center">
+  <a href="examples/edumind-overview.mp4"><img alt="Two-minute example: a school management platform recorded with the frame step on. Click to play." src=".github/brand/overview-poster.jpg" width="100%"></a>
+</p>
+
 It works on two surfaces:
 
 | | Browser | Native iOS |
@@ -26,9 +30,7 @@ Narration can come from ElevenLabs, OpenAI, the macOS `say` command, or any loca
 
 ## See it working
 
-A two-minute overview of a school management platform, recorded with the frame step on, as it comes out of the box: browser chrome, numbered step header, subtitles that follow the voice, four short lean-ins on the things the voice names, a canvas in the app's own colour, and the product's own intro and outro cards on either end.
-
-[**Watch the overview (MP4, 1:59)**](https://github.com/muayadjamal/flow-video-recorder/releases/download/v1.5.0/edumind-overview.mp4)
+The video at the top of this page is a two-minute overview of a school management platform, recorded with the frame step on, as it comes out of the box: browser chrome, numbered step header, subtitles that follow the voice, four short zooms that ride the cursor on the clicks that matter, a canvas in the app's own colour, and the product's own intro and outro cards on either end. The file is [`examples/edumind-overview.mp4`](examples/edumind-overview.mp4); GitHub plays it in the browser.
 
 Every video on [edumind.school/course](https://edumind.school/course?lang=en) was made with this skill: 20 walkthroughs of a school management platform, about 41 minutes in total, in English and Arabic, covering both the web app and the native parent and teacher apps. A few direct links:
 
