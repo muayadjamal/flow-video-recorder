@@ -1,5 +1,8 @@
 name: validate
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -29,12 +32,18 @@ jobs:
           done
   smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+      # A static build from GitHub instead of apt: the Ubuntu mirrors have
+      # taken 10 to 25 minutes for this step, the download takes seconds.
       - name: install ffmpeg
-        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+        run: |
+          curl -fsSL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz \
+            | sudo tar -xJ -C /usr/local/bin --strip-components=2 --wildcards '*/bin/ffmpeg' '*/bin/ffprobe'
+          ffmpeg -version | head -1
       - name: record a flow end to end
-        run: PLAYWRIGHT_WITH_DEPS=1 bash tests/smoke.sh
+        run: bash tests/smoke.sh
