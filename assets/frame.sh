@@ -6,11 +6,15 @@
 # Requires: node, and the frame/ directory next to this script (copied with the
 #           assets). Installs Remotion into frame/node_modules on first run,
 #           which downloads a headless Chrome; budget a few minutes and ~500 MB.
-# Env: FRAME_PAD (inset as a fraction of height, default 0.06), FRAME_RADIUS (18),
-#      FRAME_BG (CSS background, default a dark gradient), FRAME_ACCENT (step
-#      badge colour), FRAME_TITLE (small label at the top right, e.g. the app
-#      name), CRF (16). Run record.sh with FRAME=1 CAPTIONS=0 first: the step
-#      header here replaces the in-page caption pill.
+# Env: FRAME_PAD (inset as a fraction of height, default 0.06), FRAME_RADIUS (14),
+#      FRAME_BG (CSS background, default a deep blue gradient), FRAME_ACCENT
+#      (step badge colour), FRAME_TITLE (label at the top right, e.g. the app
+#      name), FRAME_URL (what the browser chrome shows instead of the recorded
+#      URLs, e.g. the production domain when recording against localhost),
+#      FRAME_CHROME=0 (no browser chrome), SUB_MAX_CHARS (44), CRF (16).
+#      Run record.sh with FRAME=1 CAPTIONS=0 first: the step header replaces
+#      the in-page caption pill, and the spoken-word subtitles come from the
+#      narration clips.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -25,24 +29,7 @@ proj="$here/frame"
 mkdir -p "$proj/public"
 cp "$in" "$proj/public/input.mp4"
 
-node -e '
-const fs = require("fs");
-const tl = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-const dur = Number(process.argv[2]);
-const trim = tl.trimMs || 0;
-fs.writeFileSync(process.argv[3], JSON.stringify({
-  src: "input.mp4",
-  videoW: tl.width || 1920, videoH: tl.height || 1080,
-  zooms: (tl.zooms || []).map((z) => ({ ...z, tMs: z.tMs - trim })).filter((z) => z.tMs > 0),
-  captions: (tl.captions || []).map((c) => ({ ...c, tMs: Math.max(0, c.tMs - trim) })),
-  durationInFrames: Math.round(dur * 30),
-  pad: Number(process.env.FRAME_PAD || 0.06),
-  accent: process.env.FRAME_ACCENT || "#FF5A3C",
-  title: process.env.FRAME_TITLE || "",
-  radius: Number(process.env.FRAME_RADIUS || 18),
-  background: process.env.FRAME_BG || "linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #312e81 100%)",
-}));
-' "$timeline" "$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$in")" "$proj/props.json"
+node "$here/frame-props.mjs" "$timeline" "$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$in")" "$proj/props.json"
 
 (cd "$proj" && npx remotion render src/index.ts Framed "$out" --props=props.json --crf="${CRF:-16}" --concurrency=4 --log=error)
 

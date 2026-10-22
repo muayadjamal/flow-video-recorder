@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 (2026-10-22)
+
+- Frame step: browser chrome with traffic lights and the live URL (`FRAME_URL` to show the real domain), compact numbered step header, and spoken-word subtitles cut from the narration clips (ElevenLabs alignment when a key exists, otherwise estimated). Zoom guidance tightened: never for a click as such, only for a detail the voice points at.
+
 ## 1.4.0 (2026-10-22)
 
 - Opt-in zoom and frame for browser recordings, rendered with Remotion and installed on first use only: a framed canvas (background, rounded corners, shadow), captions drawn as a step header above the picture (numbered badge, title, app name, progress rail), and slow spring-eased camera drifts on the clicks marked with `click(…, { zoom })` or `zoom()`. Record with `FRAME=1 CAPTIONS=0`, then run `frame.sh`. The default pipeline is unchanged.

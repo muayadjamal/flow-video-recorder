@@ -145,6 +145,10 @@ if (POINTER) await context.addInitScript(mouseHelper);
 if (CAPTIONS) await context.addInitScript(captionHelper);
 
 const page = await context.newPage();
+// Every main-frame navigation, with its time: the frame step shows the URL in
+// a browser chrome above the picture.
+const urls = [];
+page.on('framenavigated', (f) => { if (f === page.mainFrame()) urls.push({ tMs: since(), url: f.url() }); });
 const video = page.video();
 
 // The screencast starts with the page, so this is the flow clock's zero — the
@@ -226,7 +230,7 @@ const say = async (id) => {
     }
     const clip = clips.get(id);
     await setCaption(seg.caption ?? seg.text);
-    current = { id, startMs: since(), clip: clip?.file ?? null, durMs: clip?.durMs ?? 0 };
+    current = { id, startMs: since(), clip: clip?.file ?? null, durMs: clip?.durMs ?? 0, text: seg.text, caption: seg.caption ?? seg.text };
     timeline.push(current);
 };
 
@@ -299,7 +303,7 @@ try {
 
         const timelinePath = webm.replace(/\.webm$/, '.timeline.json');
         await fs.writeFile(timelinePath, JSON.stringify({
-            flowMs, videoMs: durOut, padMs, offsetMs, leadInMs, trimMs, width: VIEW.width, height: VIEW.height, segments: timeline, zooms, captions,
+            flowMs, videoMs: durOut, padMs, offsetMs, leadInMs, trimMs, width: VIEW.width, height: VIEW.height, segments: timeline, zooms, captions, urls,
         }, null, 2));
 
         // A per-segment report: where the words ran out before the step did is
