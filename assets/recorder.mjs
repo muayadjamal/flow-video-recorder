@@ -157,8 +157,10 @@ page.on('framenavigated', (f) => { if (f === page.mainFrame()) urls.push({ tMs: 
 const brands = [];
 page.on('load', async () => {
     const hex = await page.evaluate(() => {
-        const probe = document.createElement('i'); document.body.appendChild(probe);
-        const rgb = (css) => { probe.style.color = ''; probe.style.color = css; const m = getComputedStyle(probe).color.match(/[\d.]+/g); return m && m.length >= 3 ? m.map(Number) : null; };
+        // Painted through a canvas so oklch(), color-mix() and friends come
+        // back as plain bytes; parsing the computed string would not.
+        const px = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        const rgb = (css) => { if (!css) return null; px.clearRect(0, 0, 1, 1); px.fillStyle = '#000'; px.fillStyle = css; if (px.fillStyle === '#000000' && !/^(#000|black|rgb\(0, 0, 0)/.test(css)) return null; px.fillRect(0, 0, 1, 1); const d = px.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
         const vivid = ([r, g, b, a = 1]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return a >= .5 && mx > 60 && mx < 250 && (mx - mn) / mx > .35; };
         const tally = new Map();
         const add = (c, w) => { if (c && vivid(c)) { const k = c.slice(0, 3).join(','); tally.set(k, (tally.get(k) || 0) + w); } };
@@ -168,7 +170,6 @@ page.on('load', async () => {
             add(rgb(cs.backgroundColor), Math.sqrt(r.width * r.height));
             if (el.tagName === 'A') add(rgb(cs.color), 1);
         }
-        probe.remove();
         let best = null, bw = 0; for (const [k, w] of tally) if (w > bw) { best = k; bw = w; }
         if (!best) { const t = rgb(document.querySelector('meta[name="theme-color"]')?.content || ''); if (t && vivid(t)) best = t.slice(0, 3).join(','); }
         return best && '#' + best.split(',').map((n) => Number(n).toString(16).padStart(2, '0')).join('');
