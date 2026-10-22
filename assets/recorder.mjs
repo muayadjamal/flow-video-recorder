@@ -16,7 +16,7 @@
 // Without any TTS configured the same flow records silently, captions intact.
 //
 // Env knobs: POINTER=0 (no cursor or click ripple), CAPTIONS=0 (no caption
-// pill), NARRATION=0 (no voice-over),
+// pill), NARRATION=0 (no voice-over), ZOOM_SCALE (1.6), ZOOM_HOLD_MS (1500),
 //            OUT_DIR (default storage/app/recording), WIDTH/HEIGHT (1920x1080),
 // SCALE (deviceScaleFactor, default 2 = supersampled/crisp), SLOWMO (ms, 55),
 // NARRATION (set to 0 to skip voice-over), SEGMENT_GAP_MS (280).
@@ -164,16 +164,38 @@ const glide = async (loc) => {
     await first.scrollIntoViewIfNeeded().catch(() => {});
     const box = await first.boundingBox();
     if (!box) return false;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 30 });
+    lastPoint = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await page.mouse.move(lastPoint.x, lastPoint.y, { steps: 30 });
     await beat(300);
     return true;
 };
-const click = async (loc) => {
+// ── zoom(): a camera push-in, rendered later by frame.sh ─────────────────
+// Nothing changes in the page. The recorder logs where and when; the optional
+// Remotion step eases into that point, holds, and eases back out.
+const zooms = [];
+const ZOOM_SCALE = Number(process.env.ZOOM_SCALE || 1.6);
+const ZOOM_HOLD_MS = Number(process.env.ZOOM_HOLD_MS || 1500);
+let lastPoint = { x: VIEW.width / 2, y: VIEW.height / 2 };
+const zoom = async (loc, { scale = ZOOM_SCALE, ms = ZOOM_HOLD_MS, hold = true } = {}) => {
+    let x, y;
+    if (loc && typeof loc === 'object' && 'x' in loc) ({ x, y } = loc);
+    else if (loc) {
+        const l = typeof loc === 'string' ? page.locator(loc) : loc;
+        const box = await l.first().boundingBox();
+        if (!box) return;
+        x = box.x + box.width / 2; y = box.y + box.height / 2;
+    } else ({ x, y } = lastPoint);
+    zooms.push({ tMs: since(), x: Math.round(x), y: Math.round(y), scale, holdMs: ms });
+    if (hold) await beat(ms);
+};
+
+const click = async (loc, { zoom: z } = {}) => {
     if (!(await glide(loc))) return;
+    if (z) await zoom(lastPoint, { scale: z === true ? ZOOM_SCALE : z, hold: false });
     await page.mouse.down();
     await beat(100);
     await page.mouse.up();
-    await beat(500);
+    await beat(z ? ZOOM_HOLD_MS : 500);
 };
 const type = async (loc, txt) => {
     await click(loc);
@@ -235,7 +257,7 @@ const recap = async () => {
     }
 };
 
-const ctx = { page, context, browser, cap, beat, glide, click, type, goto, safe, say, hold, recap, speaking };
+const ctx = { page, context, browser, cap, beat, glide, click, zoom, type, goto, safe, say, hold, recap, speaking };
 
 let failure = null;
 try {
@@ -249,7 +271,7 @@ try {
 
     const webm = await video.path();
 
-    if (timeline.length > 0) {
+    if (timeline.length > 0 || zooms.length > 0) {
         const durOut = await new Promise((resolve) => {
             import('node:child_process').then(({ execFile }) => {
                 execFile('ffprobe', ['-v', 'error', '-show_entries', 'format=duration',
@@ -273,12 +295,12 @@ try {
 
         const timelinePath = webm.replace(/\.webm$/, '.timeline.json');
         await fs.writeFile(timelinePath, JSON.stringify({
-            flowMs, videoMs: durOut, padMs, offsetMs, leadInMs, trimMs, segments: timeline,
+            flowMs, videoMs: durOut, padMs, offsetMs, leadInMs, trimMs, width: VIEW.width, height: VIEW.height, segments: timeline, zooms,
         }, null, 2));
 
         // A per-segment report: where the words ran out before the step did is
         // exactly where the finished video will sit in silence.
-        console.error('\nsegment            spoken   onscreen   silence');
+        if (timeline.length > 0) console.error('\nsegment            spoken   onscreen   silence');
         for (const s of timeline) {
             const spoken = (s.durMs / 1000).toFixed(1);
             const actual = ((s.actualMs ?? 0) / 1000).toFixed(1);

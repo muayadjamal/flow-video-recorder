@@ -2,7 +2,7 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.3.0"
+  version: "1.4.0"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either
@@ -57,10 +57,11 @@ call), so the audio either overlaps the next step or leaves holes.
 ## Ask what goes in the video, before anything else
 
 The first thing to do, before reading the app or writing a line of the flow, is
-ask. Use `AskUserQuestion` with `multiSelect: true`, one question, these four
+ask. Use `AskUserQuestion` with `multiSelect: true`, one question, these five
 options, and say in the question that the first three ticked is the usual
-answer, and the fourth is worth ticking when the flow has something the screen
-alone cannot show:
+answer, the fourth is worth ticking when the flow has something the screen
+alone cannot show, and the fifth gives a polished, product-page look at the
+cost of a heavier install:
 
 | Option | Describe it as | Sets |
 |---|---|---|
@@ -68,6 +69,7 @@ alone cannot show:
 | Subtitles | The caption pill naming each step on screen | `CAPTIONS` |
 | Pointer | A cursor that glides between targets, and a ripple on each tap | `POINTER` |
 | Motion graphics | Short animated explainer scenes spliced between the recorded steps, with an animated transition at each join, synced word by word to the voice, for a pipeline, a data flow or a concept the screen cannot show | a `motion.plan.json`, see [Motion graphics](#motion-graphics) |
+| Zoom and frame | Browser only. The camera pushes in on the clicks that matter, with a spring ease, and the recording sits inside a framed canvas with a background, rounded corners and a shadow. Rendered by Remotion as an extra step, so it installs about 500 MB on first use | `click(…, { zoom })` in the flow, then `frame.sh`, see [Zoom and frame](#zoom-and-frame) |
 
 Pass `=0` for whatever they leave out, to either entry point:
 
@@ -86,6 +88,9 @@ The answer changes what you write, not just what gets rendered:
 - **No pointer** means taps are invisible. Let each one land on a control whose
   own pressed or focused state shows the tap happened, or the video becomes a
   screen changing for no visible reason.
+- **Zoom and frame** means two more things to write and run: `{ zoom: true }`
+  on the clicks that carry the step, and `frame.sh` after `record.sh`. The
+  framed file is the deliverable, not `record.sh`'s output.
 - **Motion graphics** means the recording is only the raw material. You also
   write one HTML scene per idea and a plan that says where each one goes, and
   the deliverable is the assembled video, not `record.sh`'s output. Only reach
@@ -139,7 +144,8 @@ voice-over on if there is one.
    ```
 2. **Copy the assets** into the project (e.g. a `scripts/` folder):
    `recorder.mjs`, `record.sh`, `tts.mjs`, `mux.mjs`, and `flow.example.mjs`
-   from this skill's `assets/`; with motion graphics ticked, also `motion.mjs`,
+   from this skill's `assets/`; with zoom and frame ticked, also `frame.sh`
+   and the whole `frame/` directory; with motion graphics ticked, also `motion.mjs`,
    `assemble.mjs`, `kit.js`, `preview.mjs`, the two `scene*.example.html`
    files and `motion.plan.example.json` (`kit.js` next to the scenes).
    `tts.mjs` must sit next to the flow file, since the recorder imports it from
@@ -175,6 +181,7 @@ voice-over on if there is one.
 - `WIDTH`/`HEIGHT`: output resolution, set from the [resolution question](#then-ask-for-the-resolution) (default `2560`/`1440`).
 - `SCALE`: `deviceScaleFactor` (default `2`). This supersamples: the page renders at 2× then scales down, so text stays crisp. The single biggest quality lever.
 - `SLOWMO`: ms added to every Playwright action (default `55`) for smooth pacing.
+- `ZOOM_SCALE` / `ZOOM_HOLD_MS`: defaults for `zoom()` and `click(…, { zoom: true })` (`1.6`, `1500`). Only rendered by `frame.sh`.
 
 ## Browser flow patterns
 
@@ -472,6 +479,54 @@ anything that has to land on a syllable.
 - `TTS_CACHE_DIR`: where clips are cached (default `storage/app/recording/tts`). Clips are keyed by content, so re-running a flow costs nothing unless the words changed.
 - `AUDIO_OFFSET_MS`: manual override if the voice ever sits ahead of or behind the picture. It should not: the recorder measures this and it comes out at zero.
 - `CRF`: H.264 quality (default `16`, near lossless; `18` for a smaller file).
+
+---
+
+# Zoom and frame
+
+Browser flows only. The recording stays as it is; a second render pushes the
+camera in on the moments the flow marked and places the picture inside a
+framed canvas. It is what makes a demo look like a product page instead of a
+screen capture, and it is opt-in because it costs the user a Remotion install:
+React, Remotion and a headless Chrome, about 500 MB, a few minutes the first
+time, and renders at roughly two to three times real time.
+
+Mark the moments in the flow. A push-in belongs on the click the step is
+about, the one the narration names, and nowhere else. A zoom on every click
+is a video that never sits still.
+
+```js
+await click(page.getByRole('button', { name: 'Approve' }), { zoom: true });   // 1.6× by default
+await click('#pay', { zoom: 1.8 });                                            // tighter
+await zoom(page.locator('table'), { scale: 1.35, ms: 1600 });                 // look at an area, no click
+```
+
+The push-in starts 450 ms before the click so it lands as the button is
+pressed, holds for `ZOOM_HOLD_MS`, then relaxes. The centre is clamped to the
+picture, so a target near an edge never shows empty canvas. Keep zooms under
+about 1.8×: the caption pill sits at the bottom of the capture and zooms with
+it, and a tight push-in on something high on the page moves the pill out of
+frame.
+
+Then render, after `record.sh` has written the video and its timeline:
+
+```bash
+bash <skill>/assets/frame.sh demo.mp4 demo.timeline.json demo.framed.mp4
+```
+
+`frame.sh` installs Remotion into `frame/node_modules` the first time, copies
+the recording in, builds the props from the timeline (zoom marks shifted by
+the head trim, size, length), renders, and prints the path. Narration comes
+through untouched since the audio travels with the input video. Knobs:
+`FRAME_PAD` (inset as a fraction of height, `0.06`), `FRAME_RADIUS` (`18`),
+`FRAME_BG` (any CSS background; default a dark blue-to-violet gradient), `CRF`.
+
+Two things to tell the user before the install: the size, and the licence.
+Remotion is free for individuals and for companies of up to three people;
+larger companies need a company licence to render. Say so when the project
+belongs to a company, and let them decide.
+
+The framed file is what you deliver. Delete the timeline afterwards as usual.
 
 ---
 

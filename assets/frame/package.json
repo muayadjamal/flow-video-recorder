@@ -1,0 +1,11 @@
+{
+  "name": "flow-video-frame",
+  "private": true,
+  "description": "Optional Remotion step for flow-video-recorder: spring-eased zooms inside a framed canvas.",
+  "dependencies": {
+    "@remotion/cli": "4.0.537",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remotion": "4.0.537"
+  }
+}

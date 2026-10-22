@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0 (2026-10-22)
+
+- Opt-in zoom and framed canvas for browser recordings: `click(…, { zoom })` and `zoom()` mark the moments, `frame.sh` renders spring-eased push-ins inside a padded, rounded, shadowed frame with Remotion. Installs on first use only; the default pipeline is unchanged.
+- The timeline now stays beside the video whenever the flow narrated or zoomed.
+
 ## 1.3.0 (2026-10-22)
 
 - The opening question now also asks for the output resolution: 720p, 1080p, 2K (default) or 4K, mapped to `WIDTH`/`HEIGHT` for browser flows and `OUT_W` for iOS.

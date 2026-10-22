@@ -116,6 +116,8 @@ TTS_COMMAND='piper --model en_US-lessac-medium.onnx --output_file "$TTS_OUT" <<<
   bash <skill>/assets/record.sh flow.mjs demo.mp4
 ```
 
+Opt-in extra for browser flows: mark the clicks that matter with `click(…, { zoom: true })`, then run `assets/frame.sh` to render spring-eased push-ins inside a framed canvas (background, rounded corners, shadow). It uses Remotion, installed on first use only, so the default pipeline stays light.
+
 After every run the recorder prints a table of spoken length against on-screen length per step, and flags silence and lines that kept talking after the screen changed.
 
 ## How it works
@@ -137,6 +139,7 @@ The full method, every environment knob, and the gotchas are in [SKILL.md](SKILL
 | `assets/record-ios.sh`, `assets/ios-recorder.mjs`, `assets/ios-compose.mjs` | iOS entry point, Maestro driver, overlay compositor |
 | `assets/tts.mjs`, `assets/mux.mjs` | Narration through ElevenLabs, OpenAI, macOS say or a custom command, with caching; audio muxing |
 | `assets/motion.mjs`, `assets/assemble.mjs`, `assets/kit.js`, `assets/preview.mjs` | Motion-graphics renderer, assembler, scene helpers, preview |
+| `assets/frame.sh`, `assets/frame/` | Optional Remotion render: zoom push-ins inside a framed canvas |
 | `assets/*.example.*` | A browser flow, an iOS flow, two scenes and a plan to copy from |
 | `assets/ios-calibrate.mjs` | Measures capture clock drift on a simulator |
 
