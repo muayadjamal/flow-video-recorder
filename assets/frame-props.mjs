@@ -63,6 +63,22 @@ if (segments.length) {
     for (let i = 0; i < subtitles.length - 1; i++) subtitles[i].endMs = Math.min(subtitles[i + 1].startMs, subtitles[i].endMs + 900);
 }
 
+// Canvas colours follow the app: the brand colour the recorder sampled is the
+// accent, and the background is a dark gradient of the same hue. Both can be
+// overridden with FRAME_ACCENT and FRAME_BG.
+const hsl = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, l = (mx + mn) / 2;
+    const s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+    const h = !d ? 0 : mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return [Math.round(h * 60), Math.round(s * 100), Math.round(l * 100)];
+};
+const sampled = /^#[0-9a-f]{6}$/i.test(tl.brand?.accent || '') ? tl.brand.accent : '#2563eb';
+const gradient = (hex) => { const [h, s] = hsl(hex); const sat = Math.min(85, Math.max(45, s)); return `radial-gradient(120% 120% at 20% 10%, hsl(${h} ${sat}% 29%) 0%, hsl(${h} ${sat}% 20%) 45%, hsl(${h} ${sat}% 11%) 100%)`; };
+// A dark brand colour would vanish against its own gradient, so the badge is lifted to a mid tint.
+const badge = (hex) => { const [h, s, l] = hsl(hex); return l >= 45 ? hex : `hsl(${h} ${Math.min(85, Math.max(45, s))}% 50%)`; };
+const accent = process.env.FRAME_ACCENT || badge(sampled);
+
 fs.writeFileSync(out, JSON.stringify({
     src: 'input.mp4',
     videoW: tl.width || 1920, videoH: tl.height || 1080,
@@ -73,9 +89,9 @@ fs.writeFileSync(out, JSON.stringify({
     durationInFrames: Math.round(Number(durationS) * 30),
     pad: Number(process.env.FRAME_PAD || 0.083),
     radius: Number(process.env.FRAME_RADIUS || 14),
-    background: process.env.FRAME_BG || 'radial-gradient(120% 120% at 20% 10%, #0b3a8a 0%, #072a66 45%, #04173d 100%)',
-    accent: process.env.FRAME_ACCENT || '#2563eb',
+    background: process.env.FRAME_BG || gradient(sampled),
+    accent,
     title: process.env.FRAME_TITLE || '',
     chrome: process.env.FRAME_CHROME !== '0',
 }));
-console.error(`  frame: ${subtitles.length} subtitle lines, ${(tl.captions || []).length} steps, ${(tl.zooms || []).length} zooms`);
+console.error(`  frame: ${subtitles.length} subtitle lines, ${(tl.captions || []).length} steps, ${(tl.zooms || []).length} zooms, accent ${accent}${tl.brand?.accent && !process.env.FRAME_ACCENT ? ' (from the app)' : ''}`);

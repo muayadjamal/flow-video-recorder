@@ -2,7 +2,7 @@
 
 ## 1.5.0 (2026-10-22)
 
-- Frame step: browser chrome with traffic lights and the live URL (`FRAME_URL` to show the real domain), compact numbered step header, and spoken-word subtitles cut from the narration clips (ElevenLabs alignment when a key exists, otherwise estimated). Zoom guidance tightened: never for a click as such, only for a detail the voice points at.
+- Frame step: browser chrome with traffic lights and the live URL (`FRAME_URL` to show the real domain), compact numbered step header, and spoken-word subtitles cut from the narration clips (ElevenLabs alignment when a key exists, otherwise estimated). The camera zooms the whole browser window, chrome included. The canvas takes the app's colours: the recorder samples the brand colour on each page load and the frame uses it for the badge and a dark gradient background (`FRAME_ACCENT`/`FRAME_BG` still override). Zoom guidance tightened: never for a click as such, only for a detail the voice points at.
 
 ## 1.4.0 (2026-10-22)
 

@@ -7,8 +7,9 @@
 #           assets). Installs Remotion into frame/node_modules on first run,
 #           which downloads a headless Chrome; budget a few minutes and ~500 MB.
 # Env: FRAME_PAD (side margin as a fraction of the width, default 0.083), FRAME_RADIUS (14),
-#      FRAME_BG (CSS background, default a deep blue gradient), FRAME_ACCENT
-#      (step badge colour), FRAME_TITLE (label at the top right, e.g. the app
+#      FRAME_BG (CSS background; default a dark gradient of the app's brand
+#      colour, sampled by the recorder, blue when none was found), FRAME_ACCENT
+#      (step badge colour, default the same brand colour), FRAME_TITLE (label at the top right, e.g. the app
 #      name), FRAME_URL (what the browser chrome shows instead of the recorded
 #      URLs, e.g. the production domain when recording against localhost),
 #      FRAME_CHROME=0 (no browser chrome), FRAME_URL_QUERY=1 (keep query strings

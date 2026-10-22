@@ -149,6 +149,33 @@ const page = await context.newPage();
 // a browser chrome above the picture.
 const urls = [];
 page.on('framenavigated', (f) => { if (f === page.mainFrame()) urls.push({ tMs: since(), url: f.url().replace(/[?#].*$/, '') }); });
+// The app's brand colour, for the canvas around the picture in the frame step:
+// the most prominent saturated background among buttons, links, header and
+// nav (weighted by size), or the theme-color meta. Sampled on every load; the
+// timeline keeps the colour seen most often.
+// shortcut: reads CSS colours only, not the logo image; add pixel sampling if apps with neutral buttons come up.
+const brands = [];
+page.on('load', async () => {
+    const hex = await page.evaluate(() => {
+        const probe = document.createElement('i'); document.body.appendChild(probe);
+        const rgb = (css) => { probe.style.color = ''; probe.style.color = css; const m = getComputedStyle(probe).color.match(/[\d.]+/g); return m && m.length >= 3 ? m.map(Number) : null; };
+        const vivid = ([r, g, b, a = 1]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return a >= .5 && mx > 60 && mx < 250 && (mx - mn) / mx > .35; };
+        const tally = new Map();
+        const add = (c, w) => { if (c && vivid(c)) { const k = c.slice(0, 3).join(','); tally.set(k, (tally.get(k) || 0) + w); } };
+        for (const el of document.querySelectorAll('button,a,[role=button],input[type=submit],header,nav,[class*=btn],[class*=primary]')) {
+            const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue;
+            const cs = getComputedStyle(el);
+            add(rgb(cs.backgroundColor), Math.sqrt(r.width * r.height));
+            if (el.tagName === 'A') add(rgb(cs.color), 1);
+        }
+        probe.remove();
+        let best = null, bw = 0; for (const [k, w] of tally) if (w > bw) { best = k; bw = w; }
+        if (!best) { const t = rgb(document.querySelector('meta[name="theme-color"]')?.content || ''); if (t && vivid(t)) best = t.slice(0, 3).join(','); }
+        return best && '#' + best.split(',').map((n) => Number(n).toString(16).padStart(2, '0')).join('');
+    }).catch(() => null);
+    if (hex) brands.push(hex);
+});
+const brand = () => { const n = new Map(); let best = null; for (const b of brands) { n.set(b, (n.get(b) || 0) + 1); if (!best || n.get(b) > n.get(best)) best = b; } return best ? { accent: best } : null; };
 const video = page.video();
 
 // The screencast starts with the page, so this is the flow clock's zero — the
@@ -303,7 +330,7 @@ try {
 
         const timelinePath = webm.replace(/\.webm$/, '.timeline.json');
         await fs.writeFile(timelinePath, JSON.stringify({
-            flowMs, videoMs: durOut, padMs, offsetMs, leadInMs, trimMs, width: VIEW.width, height: VIEW.height, segments: timeline, zooms, captions, urls,
+            flowMs, videoMs: durOut, padMs, offsetMs, leadInMs, trimMs, width: VIEW.width, height: VIEW.height, segments: timeline, zooms, captions, urls, brand: brand(),
         }, null, 2));
 
         // A per-segment report: where the words ran out before the step did is

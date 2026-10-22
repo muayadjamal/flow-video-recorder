@@ -14,8 +14,9 @@ export type FramedProps = {
 const LEAD_MS = 500;   // the drift lands on the click, so it starts this much earlier
 const FONT = '"Inter", "SF Pro Text", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif';
 
-// Slow, heavily damped camera: the picture drifts in on a marked moment, holds,
-// and drifts back. Centre is clamped so a target near an edge never shows canvas.
+// Slow, heavily damped camera over the whole browser window: it drifts in on a
+// marked moment, holds, and drifts back. Centre is clamped so the enlarged
+// window always covers its resting rectangle and only spills outward.
 const camera = (frame: number, fps: number, zooms: ZoomEvent[], W: number, H: number) => {
   let s = 1, cx = W / 2, cy = H / 2;
   for (const z of zooms) {
@@ -84,7 +85,9 @@ const Chrome: React.FC<{ frame: number; fps: number; urls: UrlEvent[]; h: number
   );
 };
 
-// Spoken-word subtitles: the phrase being said right now, in a dark box at the bottom.
+// Spoken-word subtitles: the phrase being said right now, in a dark box at the
+// bottom of the picture. Drawn on the canvas, not in the window, so the camera
+// does not scale them.
 const Subtitles: React.FC<{ frame: number; fps: number; subtitles: Subtitle[]; width: number; bottom: number; scale: number }> = ({ frame, fps, subtitles, width, bottom, scale }) => {
   const t = (frame / fps) * 1000;
   const sub = subtitles.find((s) => t >= s.startMs && t < s.endMs);
@@ -117,22 +120,24 @@ export const Framed: React.FC<FramedProps> = ({ src, videoW, videoH, zooms, capt
   if (picH > maxPic) { picH = maxPic; innerW = Math.round(picH * (videoW / videoH)); }
   const left = Math.round((width - innerW) / 2);
   const top = topPad + headerH + gap;
-  const cam = camera(frame, fps, zooms, videoW, videoH);
   const fit = innerW / videoW;
+  const boxH = chromeH + picH;
+  // The camera moves the whole browser window, chrome included, so marks are
+  // mapped from video pixels into window pixels before the drift is computed.
+  const cam = camera(frame, fps, zooms.map((z) => ({ ...z, x: z.x * fit, y: chromeH + z.y * fit })), innerW, boxH);
 
   return (
     <AbsoluteFill style={{ background }}>
       {captions.length ? <Header frame={frame} fps={fps} captions={captions} x={left} y={topPad} h={headerH} width={innerW} accent={accent} title={title} /> : null}
-      <div style={{ position: 'absolute', left, top, width: innerW, height: chromeH + picH, borderRadius: radius, overflow: 'hidden', background: '#000',
-        boxShadow: '0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08)' }}>
+      <div style={{ position: 'absolute', left, top, width: innerW, height: boxH, borderRadius: radius, overflow: 'hidden', background: '#000',
+        boxShadow: '0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08)',
+        transformOrigin: '0 0', transform: `translate(${cam.tx}px, ${cam.ty}px) scale(${cam.s})` }}>
         {chrome ? <Chrome frame={frame} fps={fps} urls={urls} h={chromeH} width={innerW} /> : null}
-        <div style={{ position: 'relative', width: innerW, height: picH, overflow: 'hidden' }}>
-          <div style={{ width: videoW, height: videoH, transformOrigin: '0 0', transform: `scale(${fit}) translate(${cam.tx}px, ${cam.ty}px) scale(${cam.s})` }}>
-            <OffthreadVideo src={staticFile(src)} style={{ width: videoW, height: videoH, display: 'block' }} />
-          </div>
-          <Subtitles frame={frame} fps={fps} subtitles={subtitles} width={innerW} bottom={Math.round(picH * 0.04)} scale={innerW / 1920} />
+        <div style={{ width: videoW, height: videoH, transformOrigin: '0 0', transform: `scale(${fit})` }}>
+          <OffthreadVideo src={staticFile(src)} style={{ width: videoW, height: videoH, display: 'block' }} />
         </div>
       </div>
+      <Subtitles frame={frame} fps={fps} subtitles={subtitles} width={innerW} bottom={height - (top + boxH) + Math.round(picH * 0.04)} scale={innerW / 1920} />
     </AbsoluteFill>
   );
 };

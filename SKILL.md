@@ -540,19 +540,30 @@ await click('#pay', { zoom: 1.4 });                                       // onl
 
 The drift starts 500 ms before its moment, holds for `ms` (default
 `ZOOM_HOLD_MS`, 1.8 s), then relaxes over a second. Both springs are slow and
-heavily damped on purpose; do not make them snappier. The centre is clamped
-to the picture, so a target near an edge never shows empty canvas. Stay
-between 1.25× and 1.5×: the point is to lean in, not to crop.
+heavily damped on purpose; do not make them snappier. The camera moves the
+whole browser window, chrome included, so it grows out over the canvas
+margins like a window being pulled closer; the centre is clamped so the
+window always covers its resting place. Subtitles and the header stay put.
+Stay between 1.25× and 1.5×: the point is to lean in, not to crop.
 
 **What `frame.sh` does.** Installs Remotion into `frame/node_modules` the
 first time, copies the recording in, builds the props from the timeline with
 `frame-props.mjs` (captions, URLs and zoom marks shifted by the head trim,
 the subtitles, size, length), renders, and prints the path. Narration comes
 through untouched since the audio travels with the input video. Knobs:
-`FRAME_TITLE`, `FRAME_URL`, `FRAME_CHROME=0`, `FRAME_ACCENT` (badge colour,
-default blue), `FRAME_PAD` (side margin as a fraction of the width, `0.083`; the frame fills the rest),
-`FRAME_RADIUS` (`14`), `FRAME_BG` (any CSS background; default a deep blue
-gradient), `SUB_MAX_CHARS`, `CRF`.
+`FRAME_TITLE`, `FRAME_URL`, `FRAME_CHROME=0`, `FRAME_ACCENT` (badge colour),
+`FRAME_PAD` (side margin as a fraction of the width, `0.083`; the frame fills the rest),
+`FRAME_RADIUS` (`14`), `FRAME_BG` (any CSS background), `SUB_MAX_CHARS`, `CRF`.
+
+**The canvas takes the app's colours.** While recording, the recorder samples
+the page's brand colour on every load (the most prominent saturated
+background among buttons, links, header and nav, else the `theme-color`
+meta) and stores it in the timeline. `frame.sh` uses it as the badge colour
+and builds the background as a dark gradient of the same hue, so the video
+looks like it belongs to the product without anyone picking colours. Only
+set `FRAME_ACCENT` or `FRAME_BG` when the user asks for something else or
+the sampled colour is wrong (say, a red "delete" button won); the render
+log prints which colour it used.
 
 Two things to tell the user before the install: the size, and the licence.
 Remotion is free for individuals and for companies of up to three people;

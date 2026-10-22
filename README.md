@@ -116,7 +116,7 @@ TTS_COMMAND='piper --model en_US-lessac-medium.onnx --output_file "$TTS_OUT" <<<
   bash <skill>/assets/record.sh flow.mjs demo.mp4
 ```
 
-Opt-in extra for browser flows: record with `FRAME=1 CAPTIONS=0`, then run `assets/frame.sh`. It renders the recording inside a browser chrome on a framed canvas, draws the captions as a numbered step header with a progress rail, lays the narration under the picture as subtitles that follow the voice, and can drift the camera in on a detail marked with `zoom()`. Uses Remotion, installed on first use only, so the default pipeline stays light.
+Opt-in extra for browser flows: record with `FRAME=1 CAPTIONS=0`, then run `assets/frame.sh`. It renders the recording inside a browser chrome on a framed canvas, draws the captions as a numbered step header with a progress rail, lays the narration under the picture as subtitles that follow the voice, colours the canvas after the app's own brand colour, and can drift the camera in on a detail marked with `zoom()`. Uses Remotion, installed on first use only, so the default pipeline stays light.
 
 After every run the recorder prints a table of spoken length against on-screen length per step, and flags silence and lines that kept talking after the screen changed.
 
