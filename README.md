@@ -26,6 +26,10 @@ Narration can come from ElevenLabs, OpenAI, the macOS `say` command, or any loca
 
 ## See it working
 
+A two-minute overview of a school management platform, recorded with the frame step on, as it comes out of the box: browser chrome, numbered step header, subtitles that follow the voice, one zoom, and a canvas in the app's own colour.
+
+[**Watch the overview (MP4, 1:56)**](https://github.com/muayadjamal/flow-video-recorder/releases/download/v1.5.0/edumind-overview.mp4)
+
 Every video on [edumind.school/course](https://edumind.school/course?lang=en) was made with this skill: 20 walkthroughs of a school management platform, about 41 minutes in total, in English and Arabic, covering both the web app and the native parent and teacher apps. A few direct links:
 
 - [Meet EduMind](https://edumind.school/course/01-overview/en.mp4) (web, with motion-graphics scenes)
