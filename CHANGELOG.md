@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0 (2026-10-22)
+
+- The opening question now also asks for the output resolution: 720p, 1080p, 2K (default) or 4K, mapped to `WIDTH`/`HEIGHT` for browser flows and `OUT_W` for iOS.
+
 ## 1.2.0 (2026-10-21)
 
 - Browser recordings now show a macOS-style arrow cursor (black, white outline, soft shadow) instead of a blue dot. It squashes while the button is down and leaves a ripple on every click. iOS recordings keep their dot and ripple.
