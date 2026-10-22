@@ -12,7 +12,10 @@ cp "$here"/flow.smoke.mjs "$work"/flow.mjs
 cd "$work"
 npm init -y >/dev/null
 npm install --no-audit --no-fund playwright >/dev/null
-npx playwright install ${PLAYWRIGHT_WITH_DEPS:+--with-deps} chromium >/dev/null
+# Headless shell only: it is what a headless launch runs, and it is smaller.
+# PLAYWRIGHT_WITH_DEPS=1 adds the apt step on a bare Linux box; CI runners
+# already have the libraries.
+npx playwright install --only-shell ${PLAYWRIGHT_WITH_DEPS:+--with-deps} chromium >/dev/null
 
 export TTS_COMMAND='ffmpeg -y -loglevel error -f lavfi -i "sine=frequency=440:duration=2" -ar 44100 "$TTS_OUT.wav" && mv "$TTS_OUT.wav" "$TTS_OUT"'
 WIDTH=1280 HEIGHT=720 OUT_DIR="$work/out" TTS_CACHE_DIR="$work/tts" bash record.sh flow.mjs demo.mp4
