@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0 (2026-10-22)
+
+- Opt-in zoom and frame for browser recordings, rendered with Remotion and installed on first use only: a framed canvas (background, rounded corners, shadow), captions drawn as a step header above the picture (numbered badge, title, app name, progress rail), and slow spring-eased camera drifts on the clicks marked with `click(…, { zoom })` or `zoom()`. Record with `FRAME=1 CAPTIONS=0`, then run `frame.sh`. The default pipeline is unchanged.
+- The timeline now stays beside the video whenever the flow narrated or zoomed.
+
 ## 1.3.0 (2026-10-22)
 
 - The opening question now also asks for the output resolution: 720p, 1080p, 2K (default) or 4K, mapped to `WIDTH`/`HEIGHT` for browser flows and `OUT_W` for iOS.

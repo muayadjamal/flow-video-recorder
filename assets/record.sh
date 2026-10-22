@@ -29,12 +29,14 @@ ffmpeg -y -loglevel error -ss "$trim" -i "$webm" -r 30 \
   -vf "scale=${width}:${height}:flags=lanczos,format=yuv420p" \
   -c:v libx264 -preset slow -crf "$crf" -movflags +faststart "$out"
 
-# The recorder writes a timeline whenever the flow narrated. Lay the voice on.
+# The recorder writes a timeline whenever the flow narrated or zoomed. Lay the
+# voice on when there are clips; keep the timeline beside the video either way,
+# since it says which line was spoken when, and where the camera should push in.
 if [ -f "$timeline" ]; then
-  narrated="$(node "$here/mux.mjs" "$out" "$timeline" "${out%.mp4}.voiced.mp4")"
-  mv "$narrated" "$out"
-  # Kept beside the video: it says which line was spoken at which offset, which
-  # is what you check frames against to prove the voice-over is in sync.
+  if [ "$(node -e "process.stdout.write(String((JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).segments||[]).length))" "$timeline")" != "0" ]; then
+    narrated="$(node "$here/mux.mjs" "$out" "$timeline" "${out%.mp4}.voiced.mp4")"
+    mv "$narrated" "$out"
+  fi
   mv "$timeline" "${out%.mp4}.timeline.json"
 fi
 
