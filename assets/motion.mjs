@@ -17,7 +17,7 @@
 //                        animates. Measure elements and draw connectors here.
 //   window.timeline()    required; returns a paused GSAP timeline. The renderer
 //                        seeks it frame by frame, so nothing plays in real time.
-//   window.SFX           optional; [{ at: 'cue' or ms, role: 'pop' }], the beats
+//   window.SFX           optional; [{ at: 'cue' or ms, offsetMs, role: 'pop' }], the beats
 //                        that get a sound effect when SFX=1 (sfx.sh, earshot kit roles).
 //
 // Layout check: after setup(), every element with class "lint" is checked for
@@ -154,7 +154,7 @@ ff.stdin.end();
 await new Promise((resolve, reject) => ff.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg exited ${code}`)))));
 await browser.close();
 if (sfx.length) {
-    const sounds = sfx.map(({ at, role }) => ({ tMs: typeof at === 'number' ? at : cues[at], role, at })).filter((s) => s.tMs != null || console.error(`  sfx: no cue "${s.at}" in the narration`));
+    const sounds = sfx.map(({ at, offsetMs = 0, role }) => ({ tMs: (typeof at === 'number' ? at : cues[at]) + offsetMs, role, at })).filter((s) => s.tMs != null || console.error(`  sfx: no cue "${s.at}" in the narration`));
     const side = out.replace(/\.mp4$/, '.sounds.json');
     fs.writeFileSync(side, JSON.stringify({ sounds }));
     execFileSync('bash', [path.join(path.dirname(new URL(import.meta.url).pathname), 'sfx.sh'), out, side, out], { stdio: 'inherit' });

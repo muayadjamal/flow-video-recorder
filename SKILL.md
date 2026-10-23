@@ -2,7 +2,7 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.6.0"
+  version: "1.6.1"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either
@@ -632,13 +632,16 @@ sound('click.confirm');           // the result the line is about, the moment it
 
 **Scenes.** A scene lists its sound beats in `window.SFX`, by cue name (or
 milliseconds from the clip's start for a silent scene), and `motion.mjs`
-mixes them in when `SFX=1`:
+mixes them in when `SFX=1`. `offsetMs` moves a sound to the moment the thing
+actually lands, when that is later than the cue: a token that starts moving
+on the cue and arrives 800 ms later gets its sound at `offsetMs: 800`, the
+same number the timeline uses.
 
 ```js
 window.SFX = [
-    { at: 'save', role: 'land.light' },     // the record lands in the office view
-    { at: 'parent', role: 'pop' },          // the family's phone lights up
-    { at: 'marks', role: 'click.confirm' },
+    { at: 'teacher', offsetMs: 900, role: 'click' },     // her tap on the phone
+    { at: 'office', offsetMs: 800, role: 'pop' },        // the mark arrives in the register
+    { at: 'parent', offsetMs: 800, role: 'click.confirm' },
 ];
 ```
 
