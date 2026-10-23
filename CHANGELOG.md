@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0 (2026-10-23)
+
+- Sound effects are fuller. Zoom drifts get a soft whoosh and hovers a tick, automatically. With `SFX=1`, `assemble.mjs` puts a whoosh on every transition. Two cues are merged only when they use the same sound, so a click is no longer dropped next to its zoom. SKILL.md now asks for a `sound()` on each step's result, and a sound on every movement in a motion scene.
+
 ## 1.6.1 (2026-10-23)
 
 - Scene sound beats take `offsetMs`, so a sound can land when a token arrives rather than when its cue starts.

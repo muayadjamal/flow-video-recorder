@@ -174,4 +174,12 @@ if (loud) {
     console.error(`${loud} join(s) have sound under the transition; widen PRE_GAP_MS/POST_GAP_MS.`);
     process.exit(2);
 }
+// With sound effects on, every wipe gets a whoosh, its loudest moment mid-wipe.
+// Added after the check above, which is about speech, not effects.
+if (process.env.SFX === '1' && joins.length) {
+    const side = out.replace(/\.mp4$/, '.joins.json');
+    await fs.writeFile(side, JSON.stringify({ sounds: joins.map((at) => ({ tMs: Math.round((at + T / 2) * 1000), role: 'whoosh.short' })) }));
+    await run('bash', [path.join(here, 'sfx.sh'), out, side, out]);
+    await fs.rm(side);
+}
 console.log(out);

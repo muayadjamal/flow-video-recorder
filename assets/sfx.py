@@ -11,7 +11,7 @@ from earshot.forge import kit
 
 SR = 48000
 KEY_GAP = 0.09   # a typing run keeps a key every 90 ms at most: 42 ms per character reads as a buzz
-MIN_GAP = 0.06   # any other two cues closer than this are one event to the ear: keep the first
+MIN_GAP = 0.06   # two cues of the same role closer than this are one event to the ear: keep the first
 
 video, cues_path, out, cache = sys.argv[1:5]
 cues = json.load(open(cues_path))
@@ -50,7 +50,7 @@ with tempfile.TemporaryDirectory() as tmp:
         import pyloudnorm
         offset += min(6.0, max(-12.0, pyloudnorm.Meter(SR).integrated_loudness(mix) + 16))
 
-    kept, dropped, last, last_key, used = [], {}, -1.0, -1.0, {}
+    kept, dropped, last, last_key, used = [], {}, {}, -1.0, {}
     for c in sorted(cues.get('sounds') or [], key=lambda c: c['tMs']):
         t, role = c['tMs'] / 1000 + shift, c['role']
         why = None
@@ -60,12 +60,12 @@ with tempfile.TemporaryDirectory() as tmp:
             why = 'not in the kit'
         elif role.startswith('key') and t - last_key < KEY_GAP:
             why = 'typing thinned'
-        elif not role.startswith('key') and t - last < MIN_GAP:
+        elif not role.startswith('key') and t - last.get(role, -1.0) < MIN_GAP:
             why = 'too close to the one before'
         if why:
             dropped[why] = dropped.get(why, 0) + 1
             continue
-        last = t
+        last[role] = t
         if role.startswith('key'):
             last_key = t
         kept.append((t, role))
