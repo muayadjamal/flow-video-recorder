@@ -2,15 +2,15 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.7.0"
+  version: "1.8.0"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either
   in a browser with Playwright or in a native iOS app on the simulator with
   Maestro, with a visible cursor and tap ripple, on-screen step captions, an optional
   voice-over (ElevenLabs, OpenAI, macOS say, or any local TTS) in sync with the picture, optional motion-graphics explainer
-  scenes spliced between recorded steps with animated transitions, optional
-  sound effects on clicks, typing and animated beats, and high-resolution MP4 output. Triggers:
+  scenes spliced between recorded steps with animated transitions, and
+  high-resolution MP4 output. Triggers:
   "record a demo video", "make a walkthrough / tour video", "screen record this
   flow", "record the app / the mobile app / the iOS app", "video of the app with
   a click indicator / cursor / captions", "add narration / voice-over to the
@@ -57,14 +57,12 @@ call), so the audio either overlaps the next step or leaves holes.
 ## Ask what goes in the video, before anything else
 
 The first thing to do, before reading the app or writing a line of the flow, is
-ask. Use `AskUserQuestion` with `multiSelect: true`, one question, these six
-options, and say in the question that the first three ticked is the usual
-answer, the fourth is worth ticking when the flow has something the screen
-alone cannot show, the fifth gives a polished, product-page look at the
-cost of a heavier install, and the sixth suits product demos and launch cuts
-more than tutorials or bug reproductions. `AskUserQuestion` takes at most four
-options per question, so ask it as two questions in the same call: the first
-three, then the last three.
+ask. Use `AskUserQuestion` with `multiSelect: true` and these five options,
+split over two questions in the same call because the tool takes four
+options at most: the first three, then the last two. Say in the questions
+that the first three ticked is the usual answer, the fourth is worth ticking
+when the flow has something the screen alone cannot show, and the fifth gives
+a polished, product-page look at the cost of a heavier install:
 
 | Option | Describe it as | Sets |
 |---|---|---|
@@ -73,7 +71,6 @@ three, then the last three.
 | Pointer | A cursor that glides between targets, and a ripple on each tap | `POINTER` |
 | Motion graphics | Short animated explainer scenes spliced between the recorded steps, with an animated transition at each join, synced word by word to the voice, for a pipeline, a data flow or a concept the screen cannot show | a `motion.plan.json`, see [Motion graphics](#motion-graphics) |
 | Frame | Browser only. The recording sits inside a browser chrome (traffic lights, the live URL) on a framed canvas; the captions become a numbered step header above it; the narration appears as spoken-word subtitles at the bottom; and the camera can drift in on a detail the voice points at. Rendered by Remotion as an extra step, so it installs about 500 MB on first use | `FRAME=1 CAPTIONS=0` on `record.sh`, then `frame.sh`, see [Frame](#frame) |
-| Sound effects | Browser recordings and motion scenes. Soft clicks and key presses under the voice, plus a sound on the few beats that land something: a confirmation, a record arriving, a scene's reveal. Made in code by earshot, so there is nothing to license; installs about 1 GB on first use | `SFX=1` on `record.sh` (and on `assemble.mjs`), then `sfx.sh`, see [Sound effects](#sound-effects) |
 
 Pass `=0` for whatever they leave out, to either entry point:
 
@@ -95,10 +92,6 @@ The answer changes what you write, not just what gets rendered:
 - **Frame** means the captions and subtitles are drawn by the frame step, not
   the page, so record with `FRAME=1 CAPTIONS=0`, and `frame.sh` runs after
   `record.sh`. The framed file is the deliverable, not `record.sh`'s output.
-- **Sound effects** means clicks, typing, hovers and zooms are heard
-  without you doing anything. Your part is a `sound()` for each step's
-  result, and a sound for every movement in a scene. [Sound
-  effects](#sound-effects) lists which sound goes where.
 - **Motion graphics** means the recording is only the raw material. You also
   write one HTML scene per idea and a plan that says where each one goes, and
   the deliverable is the assembled video, not `record.sh`'s output. Only reach
@@ -153,8 +146,7 @@ voice-over on if there is one.
 2. **Copy the assets** into the project (e.g. a `scripts/` folder):
    `recorder.mjs`, `record.sh`, `tts.mjs`, `mux.mjs`, and `flow.example.mjs`
    from this skill's `assets/`; with the frame ticked, also `frame.sh`,
-   `frame-props.mjs` and the whole `frame/` directory; with sound effects ticked, also `sfx.sh`
-   and `sfx.py`; with motion graphics ticked, also `motion.mjs`,
+   `frame-props.mjs` and the whole `frame/` directory; with motion graphics ticked, also `motion.mjs`,
    `assemble.mjs`, `kit.js`, `preview.mjs`, the two `scene*.example.html`
    files and `motion.plan.example.json` (`kit.js` next to the scenes).
    `tts.mjs` must sit next to the flow file, since the recorder imports it from
@@ -163,7 +155,7 @@ voice-over on if there is one.
    whether you write any.
 4. **Write the flow.** Copy `flow.example.mjs` to `flow.mjs` and script the
    steps. The default export gets `{ page, say, hold, recap, cap, click, type,
-   glide, goto, beat, safe, speaking, sound }`. Rules that make a good recording:
+   glide, goto, beat, safe, speaking }`. Rules that make a good recording:
    - One `say(id)` … work … `hold()` block per step. `say()` shows the caption
      and starts the clip; `hold()` keeps the step up until the line finishes.
    - Prefer role or label locators: `page.getByRole('button', { name: 'Save' })`.
@@ -192,7 +184,6 @@ voice-over on if there is one.
 - `SLOWMO`: ms added to every Playwright action (default `55`) for smooth pacing.
 - `ZOOM_SCALE` / `ZOOM_HOLD_MS`: defaults for `zoom()` and `click(…, { zoom: true })` (`1.35`, `1800`). Only rendered by `frame.sh`.
 - `FRAME=1`: keep the timeline (captions, zoom marks) for `frame.sh` even when the flow has no narration.
-- `SFX=1`: keep the timeline (click, keystroke and `sound()` cues) for `sfx.sh` even when the flow has no narration.
 
 ## Browser flow patterns
 
@@ -581,115 +572,6 @@ larger companies need a company licence to render. Say so when the project
 belongs to a company, and let them decide.
 
 The framed file is what you deliver. Delete the timeline afterwards as usual.
-
----
-
-# Sound effects
-
-Browser recordings and motion scenes. A finished video gets short sound
-effects on its clicks, its typing, and the few moments that land something,
-mixed under the voice. The sounds come from
-[earshot](https://github.com/Leonxlnx/earshot) (MIT), a bank of a few hundred
-effects made in code: no recordings and no licences to track. It is opt-in
-because the first run installs earshot and a CPU build of torch into
-`assets/sfx/.venv`, about 1 GB and a minute or two. No models are
-downloaded, and every later run takes seconds. Tell the user the size before
-the first run. If earshot is already installed, point `EARSHOT_PYTHON` at
-its Python and nothing is installed.
-
-```bash
-SFX=1 bash <skill>/assets/record.sh flow.mjs demo.mp4
-bash <skill>/assets/sfx.sh demo.mp4 demo.timeline.json demo.sfx.mp4
-```
-
-With the frame ticked, run `sfx.sh` on the framed file with the same
-timeline; the frame keeps the recording's clock. The deliverable is
-`sfx.sh`'s output.
-
-**What makes a sound.** A product video with sound on every action and
-every result feels alive; one where only a couple of clicks make a noise
-sounds unfinished. Give each thing that happens on screen its sound, keep
-each sound short and under the voice, and leave only idle time silent.
-
-In a recording:
-
-- Automatic: every `click()` (a soft click), every `type()` (key presses,
-  one every 90 ms at most, the space bar its own sound), every `zoom()` (a
-  soft whoosh as the camera drifts in), and every `glide()` the flow makes
-  on its own, without a click (a hover tick). Page loads, scrolling and
-  captions stay silent.
-- By hand, `sound(role)` for the result each step shows, at the moment it
-  appears: `land.light` for a table, list or grid arriving, `pop` for a
-  panel, modal, tab or toast appearing, `click.confirm` for a save or an
-  approval that went through. Most steps have one. Never on an error unless
-  the error is the point.
-
-```js
-await click(page.getByRole('button', { name: 'Approve' }));
-await page.getByText('Approved').waitFor();
-sound('click.confirm');           // the result, the moment it shows
-```
-
-**Scenes.** A scene lists its sound beats in `window.SFX`, by cue name (or
-milliseconds from the clip's start for a silent scene), and `motion.mjs`
-mixes them in when `SFX=1`. `offsetMs` moves a sound to the moment the thing
-actually lands, when that is later than the cue: a token that starts moving
-on the cue and arrives 800 ms later gets its sound at `offsetMs: 800`, the
-same number the timeline uses.
-
-```js
-window.SFX = [
-    { at: 'teacher', offsetMs: -500, role: 'whoosh.short' },  // the phone slides in
-    { at: 'teacher', offsetMs: 900, role: 'click' },          // her tap on the phone
-    { at: 'office', offsetMs: 50, role: 'whoosh.short' },     // the token leaves
-    { at: 'office', offsetMs: 800, role: 'pop' },             // and lands in the register
-    { at: 'parent', offsetMs: 800, role: 'click.confirm' },
-];
-```
-
-Go through the timeline tween by tween. Everything that enters, lands,
-pings, flips, counts or changes text gets a sound: `pop` for an element
-popping in, `land.light` for a card or token arriving, `whoosh.short` for
-something sliding in or a token setting off, `whoosh.long` for a camera
-move, `tick` for each item of a stagger or each step of a counter (the
-mixer keeps two of the same sound at least 60 ms apart), `snap` for a
-toggle, `click` for a tap, `click.confirm` for a notification. `hit` goes
-on the one reveal of the whole video. Background drift, idle float and
-flowing connector dashes stay silent, and so do the scene's lead-in and
-tail: whatever enters under a wipe is covered by the wipe's own whoosh, and
-anything audible there fails the join check. `hit` rings for about two
-seconds, so keep it at least that far from the scene's end.
-
-**Between parts.** With `SFX=1`, `assemble.mjs` puts a whoosh on every
-transition, its loudest moment in the middle of the wipe. It is added after
-the join check, which is about speech, so joins stay free of voice.
-
-For a video with motion scenes, run `sfx.sh` on the recording first and
-point the plan's `flow` at its output, then run `assemble.mjs` with `SFX=1`
-so the scenes render with their sounds and the joins get theirs. If the join
-check fails, a click or a `sound()` sits too close to a segment boundary, so
-move or drop it.
-
-**Roles** (the calm kit): `click`, `key`, `key.space`, `key.return`, `pop`,
-`click.confirm`, `land.light`, `land`, `tick`, `whoosh.short`,
-`whoosh.long`, `hit`, `bell`, `snap`. A role the kit leaves out is skipped
-and reported.
-
-**Levels are not a knob to reach for.** Under a voice the effects sit 6 dB
-below the kit's levels, adjusted for how loud the voice is, so a quiet
-narration does not get loud clicks. On a silent video they play at the
-kit's own levels. The log line says what was used and what was skipped:
-
-```
-  sfx: 3 click, 18 key, 2 key.space, 1 click.confirm (calm kit, -6.3 dB); skipped 21 typing thinned
-```
-
-Knobs: `SFX_KIT` (`calm`, the default: soft natural touches; `crisp` for an
-energetic product film; `minimal`; or a `kit.json` from `earshot kit init`),
-`SFX_DB` (replaces the −6 dB), `EARSHOT_PYTHON`.
-
-Not on iOS yet: Maestro's taps are logged, but on another clock. Say so if
-the user asks for sound on a phone recording.
 
 ---
 

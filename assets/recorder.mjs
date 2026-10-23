@@ -17,7 +17,7 @@
 //
 // Env knobs: POINTER=0 (no cursor or click ripple), CAPTIONS=0 (no caption
 // pill), NARRATION=0 (no voice-over), ZOOM_SCALE (1.35), ZOOM_HOLD_MS (1800),
-// FRAME=1 (always write the timeline, for frame.sh), SFX=1 (same, for sfx.sh),
+// FRAME=1 (always write the timeline, for frame.sh),
 //            OUT_DIR (default storage/app/recording), WIDTH/HEIGHT (1920x1080),
 // SCALE (deviceScaleFactor, default 2 = supersampled/crisp), SLOWMO (ms, 55),
 // NARRATION (set to 0 to skip voice-over), SEGMENT_GAP_MS (280).
@@ -193,7 +193,7 @@ const setCaption = async (t) => {
 };
 const cap = async (t) => { await setCaption(t); await beat(650); };
 
-const glide = async (loc, { tick = false } = {}) => {
+const glide = async (loc) => {
     const l = typeof loc === 'string' ? page.locator(loc) : loc;
     const first = l.first();
     await first.scrollIntoViewIfNeeded().catch(() => {});
@@ -201,7 +201,6 @@ const glide = async (loc, { tick = false } = {}) => {
     if (!box) return false;
     lastPoint = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
     await page.mouse.move(lastPoint.x, lastPoint.y, { steps: 30 });
-    if (tick) sound('tick');   // a hover the flow shows on its own, not the approach to a click
     await beat(300);
     return true;
 };
@@ -211,7 +210,7 @@ const glide = async (loc, { tick = false } = {}) => {
 const zooms = [];
 const ZOOM_SCALE = Number(process.env.ZOOM_SCALE || 1.35);
 const ZOOM_HOLD_MS = Number(process.env.ZOOM_HOLD_MS || 1800);
-const FRAME = process.env.FRAME === '1' || process.env.SFX === '1';   // frame.sh or sfx.sh will run, so keep a timeline for it
+const FRAME = process.env.FRAME === '1';   // the Remotion step will run, so keep a timeline for it
 let lastPoint = { x: VIEW.width / 2, y: VIEW.height / 2 };
 const zoom = async (loc, { scale = ZOOM_SCALE, ms = ZOOM_HOLD_MS, hold = true } = {}) => {
     let x, y;
@@ -223,21 +222,12 @@ const zoom = async (loc, { scale = ZOOM_SCALE, ms = ZOOM_HOLD_MS, hold = true } 
         x = box.x + box.width / 2; y = box.y + box.height / 2;
     } else ({ x, y } = lastPoint);
     zooms.push({ tMs: since(), x: Math.round(x), y: Math.round(y), scale, holdMs: ms });
-    sound('whoosh.short');
     if (hold) await beat(ms);
 };
-
-// ── sound(): sound-effect cues, rendered later by sfx.sh ─────────────────
-// Clicks, keystrokes, hovers and zooms log themselves; a flow calls sound(role)
-// for each result it shows (a list arriving, a panel opening, a save going
-// through). Roles are the earshot kit's: click, key, pop, click.confirm, …
-const sounds = [];
-const sound = (role) => { sounds.push({ tMs: since(), role }); };
 
 const click = async (loc, { zoom: z } = {}) => {
     if (!(await glide(loc))) return;
     if (z) await zoom(lastPoint, { scale: z === true ? ZOOM_SCALE : z, hold: false });
-    sound('click');
     await page.mouse.down();
     await beat(100);
     await page.mouse.up();
@@ -247,11 +237,7 @@ const type = async (loc, txt) => {
     await click(loc);
     const l = typeof loc === 'string' ? page.locator(loc) : loc;
     await l.first().fill('');
-    const from = since();
     await page.keyboard.type(txt, { delay: 42 });
-    // one cue per character, spread over the time the typing really took
-    const step = (since() - from) / Math.max(1, txt.length);
-    [...txt].forEach((ch, i) => sounds.push({ tMs: Math.round(from + i * step), role: ch === ' ' ? 'key.space' : 'key' }));
     await beat(300);
 };
 const goto = (url) => page.goto(url);
@@ -307,7 +293,7 @@ const recap = async () => {
     }
 };
 
-const ctx = { page, context, browser, cap, beat, glide: (loc) => glide(loc, { tick: true }), click, zoom, type, goto, safe, say, hold, recap, speaking, sound };
+const ctx = { page, context, browser, cap, beat, glide, click, zoom, type, goto, safe, say, hold, recap, speaking };
 
 let failure = null;
 try {
@@ -345,7 +331,7 @@ try {
 
         const timelinePath = webm.replace(/\.webm$/, '.timeline.json');
         await fs.writeFile(timelinePath, JSON.stringify({
-            flowMs, videoMs: durOut, padMs, offsetMs, leadInMs, trimMs, width: VIEW.width, height: VIEW.height, segments: timeline, zooms, captions, urls, sounds, brand: brand(),
+            flowMs, videoMs: durOut, padMs, offsetMs, leadInMs, trimMs, width: VIEW.width, height: VIEW.height, segments: timeline, zooms, captions, urls, brand: brand(),
         }, null, 2));
 
         // A per-segment report: where the words ran out before the step did is

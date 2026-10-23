@@ -6,4 +6,3 @@ node_modules/
 preview/
 .DS_Store
 .playwright-mcp/
-assets/sfx/
