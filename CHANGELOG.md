@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0 (2026-10-23)
+
+- Opt-in sound effects, made in code by [earshot](https://github.com/Leonxlnx/earshot) and installed on first use only (about 1 GB). Record with `SFX=1`, then run `sfx.sh`. Clicks and typing get soft sounds automatically, with typing thinned to one key every 90 ms. Flows mark a visible result with `sound(role)`, and motion scenes list their beats in `window.SFX`. Effects sit under the voice and follow its loudness.
+- The opening question is now two questions of three options each, since `AskUserQuestion` allows four options at most.
+
 ## 1.5.1 (2026-10-22)
 
 - Brand colour sampling reads colours through a canvas, so apps styled with `oklch()` or `color-mix()` (Filament, Tailwind 4) get their real colour instead of the default blue.

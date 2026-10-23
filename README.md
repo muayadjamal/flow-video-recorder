@@ -121,6 +121,8 @@ TTS_COMMAND='piper --model en_US-lessac-medium.onnx --output_file "$TTS_OUT" <<<
 
 Opt-in extra for browser flows: record with `FRAME=1 CAPTIONS=0`, then run `assets/frame.sh`. It renders the recording inside a browser chrome on a framed canvas, draws the captions as a numbered step header with a progress rail, lays the narration under the picture as subtitles that follow the voice, colours the canvas after the app's own brand colour, and can drift the camera in on a detail marked with `zoom()`. Uses Remotion, installed on first use only, so the default pipeline stays light.
 
+Opt-in extra for browser flows and motion scenes: record with `SFX=1`, then run `assets/sfx.sh`. It mixes soft clicks and key presses under the voice, plus a sound on the few moments a flow or scene marks as landing something (a confirmation, a record arriving). The sounds come from [earshot](https://github.com/Leonxlnx/earshot), a bank of effects made in code, so there is nothing to license. earshot is installed on first use only, about 1 GB.
+
 After every run the recorder prints a table of spoken length against on-screen length per step, and flags silence and lines that kept talking after the screen changed.
 
 ## How it works
@@ -143,6 +145,7 @@ The full method, every environment knob, and the gotchas are in [SKILL.md](SKILL
 | `assets/tts.mjs`, `assets/mux.mjs` | Narration through ElevenLabs, OpenAI, macOS say or a custom command, with caching; audio muxing |
 | `assets/motion.mjs`, `assets/assemble.mjs`, `assets/kit.js`, `assets/preview.mjs` | Motion-graphics renderer, assembler, scene helpers, preview |
 | `assets/frame.sh`, `assets/frame-props.mjs`, `assets/frame/` | Optional Remotion render: browser chrome, step header, subtitles, camera drifts |
+| `assets/sfx.sh`, `assets/sfx.py` | Optional sound effects from earshot's bank on clicks, typing and marked beats |
 | `assets/*.example.*` | A browser flow, an iOS flow, two scenes and a plan to copy from |
 | `assets/ios-calibrate.mjs` | Measures capture clock drift on a simulator |
 

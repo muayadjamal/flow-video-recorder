@@ -104,7 +104,7 @@ for (const [i, part] of plan.parts.entries()) {
     } else if (part.motion) {
         // Reuse the render when nothing that shapes it changed.
         const kit = await fs.readFile(path.join(path.dirname(resolve(part.motion)), 'kit.js'), 'utf8').catch(() => '');
-        const key = crypto.createHash('sha1').update([await fs.readFile(resolve(part.motion), 'utf8'), kit, part.text || '', part.ms || '', head, tail, width, height, fps, crf].join('|')).digest('hex');
+        const key = crypto.createHash('sha1').update([await fs.readFile(resolve(part.motion), 'utf8'), kit, part.text || '', part.ms || '', process.env.SFX || '', head, tail, width, height, fps, crf].join('|')).digest('hex');
         const stamp = `${file}.key`;
         if ((await fs.readFile(stamp, 'utf8').catch(() => '')) === key) {
             console.error(`  part ${i} motion ${part.motion} (unchanged, reused)`);
