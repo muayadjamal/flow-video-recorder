@@ -193,7 +193,7 @@ const setCaption = async (t) => {
 };
 const cap = async (t) => { await setCaption(t); await beat(650); };
 
-const glide = async (loc) => {
+const glide = async (loc, { tick = false } = {}) => {
     const l = typeof loc === 'string' ? page.locator(loc) : loc;
     const first = l.first();
     await first.scrollIntoViewIfNeeded().catch(() => {});
@@ -201,6 +201,7 @@ const glide = async (loc) => {
     if (!box) return false;
     lastPoint = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
     await page.mouse.move(lastPoint.x, lastPoint.y, { steps: 30 });
+    if (tick) sound('tick');   // a hover the flow shows on its own, not the approach to a click
     await beat(300);
     return true;
 };
@@ -222,13 +223,14 @@ const zoom = async (loc, { scale = ZOOM_SCALE, ms = ZOOM_HOLD_MS, hold = true } 
         x = box.x + box.width / 2; y = box.y + box.height / 2;
     } else ({ x, y } = lastPoint);
     zooms.push({ tMs: since(), x: Math.round(x), y: Math.round(y), scale, holdMs: ms });
+    sound('whoosh.short');
     if (hold) await beat(ms);
 };
 
 // ── sound(): sound-effect cues, rendered later by sfx.sh ─────────────────
-// Clicks and keystrokes log themselves; a flow calls sound(role) only for a
-// result worth hearing (a success toast, a record appearing). Roles are the
-// earshot kit's: click, key, pop, click.confirm, land.light, whoosh.short, …
+// Clicks, keystrokes, hovers and zooms log themselves; a flow calls sound(role)
+// for each result it shows (a list arriving, a panel opening, a save going
+// through). Roles are the earshot kit's: click, key, pop, click.confirm, …
 const sounds = [];
 const sound = (role) => { sounds.push({ tMs: since(), role }); };
 
@@ -305,7 +307,7 @@ const recap = async () => {
     }
 };
 
-const ctx = { page, context, browser, cap, beat, glide, click, zoom, type, goto, safe, say, hold, recap, speaking, sound };
+const ctx = { page, context, browser, cap, beat, glide: (loc) => glide(loc, { tick: true }), click, zoom, type, goto, safe, say, hold, recap, speaking, sound };
 
 let failure = null;
 try {

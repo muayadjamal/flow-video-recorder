@@ -2,7 +2,7 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.6.1"
+  version: "1.7.0"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either
@@ -95,10 +95,10 @@ The answer changes what you write, not just what gets rendered:
 - **Frame** means the captions and subtitles are drawn by the frame step, not
   the page, so record with `FRAME=1 CAPTIONS=0`, and `frame.sh` runs after
   `record.sh`. The framed file is the deliverable, not `record.sh`'s output.
-- **Sound effects** means clicks and typing are heard without you doing
-  anything, so the work is restraint: call `sound()` only for the results
-  the voice talks about, and give a scene a sound only on the beats where
-  something lands. [Sound effects](#sound-effects) has the budget.
+- **Sound effects** means clicks, typing, hovers and zooms are heard
+  without you doing anything. Your part is a `sound()` for each step's
+  result, and a sound for every movement in a scene. [Sound
+  effects](#sound-effects) lists which sound goes where.
 - **Motion graphics** means the recording is only the raw material. You also
   write one HTML scene per idea and a plan that says where each one goes, and
   the deliverable is the assembled video, not `record.sh`'s output. Only reach
@@ -606,28 +606,28 @@ With the frame ticked, run `sfx.sh` on the framed file with the same
 timeline; the frame keeps the recording's clock. The deliverable is
 `sfx.sh`'s output.
 
-**What makes a sound, and what does not.** Sound is good at confirming
-that something happened, and bad at everything else. A video where every
-movement makes a noise sounds like a toy; one with nothing but a voice can
-feel flat in a product demo. The rules:
+**What makes a sound.** A product video with sound on every action and
+every result feels alive; one where only a couple of clicks make a noise
+sounds unfinished. Give each thing that happens on screen its sound, keep
+each sound short and under the voice, and leave only idle time silent.
 
-- Every `click()` gets a soft click, automatically.
-- `type()` gets key presses, automatically, thinned to one every 90 ms with
-  the space bar its own sound. A run of 42 ms keystrokes would read as a buzz.
-- Nothing else is automatic. Hover, glide, scroll, page loads, captions and
-  zoom drifts stay silent. The cursor already shows them, and a whoosh on a
-  slow camera drift sounds cheap.
-- `sound(role)` marks a result by hand, at the moment it appears on screen:
-  `click.confirm` for a save or an approval that went through, `pop` for a
-  toast or a badge appearing, `land.light` for a new row or a card arriving.
-  Only for a result the voice talks about, at most one per step, and in
-  practice a handful in a two-minute video. Never on an error unless the
-  error is the point.
+In a recording:
+
+- Automatic: every `click()` (a soft click), every `type()` (key presses,
+  one every 90 ms at most, the space bar its own sound), every `zoom()` (a
+  soft whoosh as the camera drifts in), and every `glide()` the flow makes
+  on its own, without a click (a hover tick). Page loads, scrolling and
+  captions stay silent.
+- By hand, `sound(role)` for the result each step shows, at the moment it
+  appears: `land.light` for a table, list or grid arriving, `pop` for a
+  panel, modal, tab or toast appearing, `click.confirm` for a save or an
+  approval that went through. Most steps have one. Never on an error unless
+  the error is the point.
 
 ```js
 await click(page.getByRole('button', { name: 'Approve' }));
 await page.getByText('Approved').waitFor();
-sound('click.confirm');           // the result the line is about, the moment it shows
+sound('click.confirm');           // the result, the moment it shows
 ```
 
 **Scenes.** A scene lists its sound beats in `window.SFX`, by cue name (or
@@ -639,24 +639,35 @@ same number the timeline uses.
 
 ```js
 window.SFX = [
-    { at: 'teacher', offsetMs: 900, role: 'click' },     // her tap on the phone
-    { at: 'office', offsetMs: 800, role: 'pop' },        // the mark arrives in the register
+    { at: 'teacher', offsetMs: -500, role: 'whoosh.short' },  // the phone slides in
+    { at: 'teacher', offsetMs: 900, role: 'click' },          // her tap on the phone
+    { at: 'office', offsetMs: 50, role: 'whoosh.short' },     // the token leaves
+    { at: 'office', offsetMs: 800, role: 'pop' },             // and lands in the register
     { at: 'parent', offsetMs: 800, role: 'click.confirm' },
 ];
 ```
 
-Give a beat a sound only where something arrives, lands or is struck: a
-token reaching its node, a stamp, a counter landing. A staggered wave of
-tiles gets one sound on its first tile, not one per tile. `whoosh.short`
-only for something crossing the screen or a camera move; its loudest
-moment lands on the cue, so put the cue where the motion is fastest.
-`hit` at most once in the whole video, on the reveal. About one sound a
-second is the most a scene should carry, and none in its lead-in or tail.
+Go through the timeline tween by tween. Everything that enters, lands,
+pings, flips, counts or changes text gets a sound: `pop` for an element
+popping in, `land.light` for a card or token arriving, `whoosh.short` for
+something sliding in or a token setting off, `whoosh.long` for a camera
+move, `tick` for each item of a stagger or each step of a counter (the
+mixer keeps two of the same sound at least 60 ms apart), `snap` for a
+toggle, `click` for a tap, `click.confirm` for a notification. `hit` goes
+on the one reveal of the whole video. Background drift, idle float and
+flowing connector dashes stay silent, and so do the scene's lead-in and
+tail: whatever enters under a wipe is covered by the wipe's own whoosh, and
+anything audible there fails the join check. `hit` rings for about two
+seconds, so keep it at least that far from the scene's end.
+
+**Between parts.** With `SFX=1`, `assemble.mjs` puts a whoosh on every
+transition, its loudest moment in the middle of the wipe. It is added after
+the join check, which is about speech, so joins stay free of voice.
 
 For a video with motion scenes, run `sfx.sh` on the recording first and
 point the plan's `flow` at its output, then run `assemble.mjs` with `SFX=1`
-so the scenes render with their sounds. The join check still applies; if a
-join fails, a click or a `sound()` sits too close to a segment boundary, so
+so the scenes render with their sounds and the joins get theirs. If the join
+check fails, a click or a `sound()` sits too close to a segment boundary, so
 move or drop it.
 
 **Roles** (the calm kit): `click`, `key`, `key.space`, `key.return`, `pop`,
