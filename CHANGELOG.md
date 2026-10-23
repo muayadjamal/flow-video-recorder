@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1 (2026-10-23)
+
+- Scene sound beats take `offsetMs`, so a sound can land when a token arrives rather than when its cue starts.
+
 ## 1.6.0 (2026-10-23)
 
 - Opt-in sound effects, made in code by [earshot](https://github.com/Leonxlnx/earshot) and installed on first use only (about 1 GB). Record with `SFX=1`, then run `sfx.sh`. Clicks and typing get soft sounds automatically, with typing thinned to one key every 90 ms. Flows mark a visible result with `sound(role)`, and motion scenes list their beats in `window.SFX`. Effects sit under the voice and follow its loudness.
