@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.0 (2026-10-23)
+
+- Sound effects (added in 1.6.0) are removed: `sfx.sh`, `sfx.py`, the `SFX` option, `sound()` in flows and `window.SFX` in scenes. The pipeline is back to what 1.5.1 had.
+- The opening question stays split in two (three options, then two), since `AskUserQuestion` takes four options at most.
+
 ## 1.7.0 (2026-10-23)
 
 - Sound effects are fuller. Zoom drifts get a soft whoosh and hovers a tick, automatically. With `SFX=1`, `assemble.mjs` puts a whoosh on every transition. Two cues are merged only when they use the same sound, so a click is no longer dropped next to its zoom. SKILL.md now asks for a `sound()` on each step's result, and a sound on every movement in a motion scene.

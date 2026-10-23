@@ -104,7 +104,7 @@ for (const [i, part] of plan.parts.entries()) {
     } else if (part.motion) {
         // Reuse the render when nothing that shapes it changed.
         const kit = await fs.readFile(path.join(path.dirname(resolve(part.motion)), 'kit.js'), 'utf8').catch(() => '');
-        const key = crypto.createHash('sha1').update([await fs.readFile(resolve(part.motion), 'utf8'), kit, part.text || '', part.ms || '', process.env.SFX || '', head, tail, width, height, fps, crf].join('|')).digest('hex');
+        const key = crypto.createHash('sha1').update([await fs.readFile(resolve(part.motion), 'utf8'), kit, part.text || '', part.ms || '', head, tail, width, height, fps, crf].join('|')).digest('hex');
         const stamp = `${file}.key`;
         if ((await fs.readFile(stamp, 'utf8').catch(() => '')) === key) {
             console.error(`  part ${i} motion ${part.motion} (unchanged, reused)`);
@@ -173,13 +173,5 @@ console.error(`assembled ${files.length} parts, ${joins.length} × ${type} (${T}
 if (loud) {
     console.error(`${loud} join(s) have sound under the transition; widen PRE_GAP_MS/POST_GAP_MS.`);
     process.exit(2);
-}
-// With sound effects on, every wipe gets a whoosh, its loudest moment mid-wipe.
-// Added after the check above, which is about speech, not effects.
-if (process.env.SFX === '1' && joins.length) {
-    const side = out.replace(/\.mp4$/, '.joins.json');
-    await fs.writeFile(side, JSON.stringify({ sounds: joins.map((at) => ({ tMs: Math.round((at + T / 2) * 1000), role: 'whoosh.short' })) }));
-    await run('bash', [path.join(here, 'sfx.sh'), out, side, out]);
-    await fs.rm(side);
 }
 console.log(out);
