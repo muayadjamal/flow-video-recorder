@@ -2,7 +2,7 @@
 name: flow-video-recorder
 license: MIT
 metadata:
-  version: "1.8.0"
+  version: "1.9.0"
 description: >
   Use when the user wants to record a screen-capture video of a flow through an
   app: a walkthrough, product demo, feature tour, or reproduction, driven either
@@ -748,3 +748,40 @@ without searching:
 ```
 Final video: /Users/me/code/app/out/demo.mp4 (2:51, 48 MB)
 ```
+
+## When the video has to go somewhere else
+
+The finished MP4 is the deliverable, and nothing in the pipeline needs more
+than `ffmpeg` and `node`. Sometimes the user asks for something the pipeline
+does not make: a vertical or square version, a platform export (Reels,
+TikTok, YouTube, X, LinkedIn), a GIF preview, a loudness target, a shorter
+cut, subtitles as a file or burned in, or a check that the file is fine to
+upload. Only then, and only on the finished file (after `frame.sh` or
+`assemble.mjs`, never inside `record.sh`), hand the job to the
+[ffmpeg-skill](https://github.com/kajisho5/ffmpeg-skill) skill if it is
+installed: it shows in the list of available skills, or
+`~/.claude/skills/ffmpeg-skill` exists. Load it and follow its routing table.
+The rows that fit a demo video:
+
+| Ask | ffmpeg-skill |
+|---|---|
+| "Post it as a Reel / TikTok / Short / for YouTube" | `render.py --template reels input.mp4` (frame, loudness, export and check in one run) |
+| "Make it vertical / square" | `fit.py input.mp4 --aspect 9:16 --fit pad` |
+| "A GIF preview" | `export.py input.mp4 --preset gif` |
+| "Is it OK to upload?" | `check.py final.mp4 --platform youtube` |
+| "Show me what it looks like" | `look.py final.mp4 --tiles 3x2` |
+
+When it is not installed, do the same job with plain `ffmpeg`, which is
+always there. Never install it, and never tell the user they need it:
+
+```bash
+# smaller file for a chat or a README (raise CRF until it fits)
+ffmpeg -i demo.mp4 -c:v libx264 -preset slow -crf 26 -c:a aac -b:a 128k -movflags +faststart demo-web.mp4
+# vertical 1080x1920 with the picture centred
+ffmpeg -i demo.mp4 -vf "scale=1080:-2,pad=1080:1920:(ow-iw)/2:(oh-ih)/2" -c:a copy demo-9x16.mp4
+# GIF preview, 12 fps, 800 px wide
+ffmpeg -i demo.mp4 -vf "fps=12,scale=800:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" demo.gif
+```
+
+A plain request for a demo video uses neither: no export, no re-encode, no
+second skill.
