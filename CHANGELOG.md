@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.0 (2026-10-29)
+
+- After the video is finished, a request for another format (a platform export, vertical or square, a GIF, an upload check) goes to [ffmpeg-skill](https://github.com/kajisho5/ffmpeg-skill) when it is installed, and to plain `ffmpeg` commands when it is not. The recording pipeline itself does not use or need it.
+
 ## 1.8.0 (2026-10-23)
 
 - Sound effects (added in 1.6.0) are removed: `sfx.sh`, `sfx.py`, the `SFX` option, `sound()` in flows and `window.SFX` in scenes. The pipeline is back to what 1.5.1 had.
